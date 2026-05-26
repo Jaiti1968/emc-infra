@@ -1,0 +1,16 @@
+services:
+  frontend:
+    image: nginx:alpine
+    container_name: emc-mitglieder-frontend-prod
+    restart: unless-stopped
+    ports:
+      - "9082:80"
+    volumes:
+      - /volume1/docker/build/mitglieder-frontend-prod/dist:/usr/share/nginx/html:ro
+      - /volume1/docker/build/mitglieder-frontend-prod/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - emc_net
+
+networks:
+  emc_net:
+    external: true

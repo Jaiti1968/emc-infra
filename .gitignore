@@ -1,0 +1,16 @@
+# Secrets / runtime configuration
+.env
+*.env
+**/.env
+**/*.env
+
+# Local editor / OS files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
