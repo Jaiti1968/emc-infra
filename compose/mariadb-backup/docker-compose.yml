@@ -17,7 +17,7 @@ services:
       CRON_TIME: "0 3 * * *"
       GZIP_LEVEL: 6
     volumes:
-      - /volume1/home/JaitiNissi1968/docker/backups/mariadb:/backup
+      - /volume1/docker/backups/mariadb:/backup
     networks:
       - mariadb_default
 
