@@ -6,7 +6,7 @@ services:
     environment:
       MYSQL_HOST: mariadb
       MYSQL_PORT: 3306
-      MYSQL_USER: root
+      MYSQL_USER: emc_backup
       MYSQL_PASS: ${MYSQL_PASS}
       
       # 👇 NUR DIESE DBs!
