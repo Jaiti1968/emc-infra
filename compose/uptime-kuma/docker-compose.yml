@@ -6,5 +6,12 @@ services:
     ports:
       - "3001:3001"
     volumes:
-      - /volume1/home/JaitiNissi1968/docker/volumes/uptime-kuma/data:/app/data
+      - /volume1/docker/volumes/uptime-kuma/data:/app/data
       - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - default
+      - emc_net
+
+networks:
+  emc_net:
+    external: true
