@@ -35,6 +35,7 @@ Recoveryfähigkeit hat höhere Priorität als maximale Security-Härte.
 - Docker
 - Portainer
 - Uptime Kuma
+- Syncthing
 
 ### Datenbank
 
@@ -57,9 +58,80 @@ Recoveryfähigkeit hat höhere Priorität als maximale Security-Härte.
 - Monitoring
 - Container Recovery
 
+### Security-Artefakte
+
+- KeePassXC Datenbanken
+- Fritz!Box Konfigurationssicherungen
+- Credential Inventory
+- Break-Glass Dokumentation
+- Recovery-Dokumentation
+
+## Security-Verzeichnis Synchronisation
+
+Seit Phase 8 werden die Security-Artefakte zusätzlich auf das NAS repliziert.
+
+Führender Speicherort:
+
+```text
+C:\Users\Joerg\Documents\Security
+```
+
+NAS-Replik:
+
+```text
+/volume1/home/JaitiNissi1968/Security
+```
+
+Betriebsmodell:
+
+```text
+Laptop = Source of Truth
+NAS = Replik
+Desktop = zusätzlicher Client (optional)
+```
+
+Synchronisation:
+
+```text
+Syncthing
+```
+
+Wichtige Hinweise:
+
+- Syncthing dient der Replikation.
+- Syncthing ersetzt kein Backup.
+- Die NAS-Replik wird zusätzlich durch das bestehende Backup-Konzept geschützt.
+- Die Syncthing-Versionierung (.stversions) unterstützt die Wiederherstellung versehentlich gelöschter oder überschriebener Dateien.
+
+## Recovery-Szenarien
+
+### Laptop-Ausfall
+
+Recovery über:
+
+- NAS-Replik
+- NAS Backup
+- USB Backup
+
+### NAS-Ausfall
+
+Recovery über:
+
+- Laptop (führende Quelle)
+- GitHub
+- USB Backup
+
+### Beschädigte KeePass-Datei
+
+Recovery über:
+
+- Syncthing Versionierung (.stversions)
+- NAS Backup
+- USB Backup
+
 ## Wichtige Grundprinzipien
 
-### Keine gleichzeitige Rotation gekoppelte Credentials
+### Keine gleichzeitige Rotation gekoppelter Credentials
 
 Besonders kritisch:
 
@@ -77,3 +149,13 @@ Altlasten werden erst entfernt, wenn Recoveryfähigkeit gesichert ist.
 ### Recovery dokumentieren
 
 Recoverypfade müssen nachvollziehbar dokumentiert sein.
+
+### Laptop bleibt führendes System
+
+Für Security-Artefakte gilt:
+
+```text
+Laptop = Source of Truth
+```
+
+Die NAS-Kopie dient der Replikation und Recovery-Unterstützung.

@@ -222,7 +222,9 @@ Zielstruktur:
 ├── recovery
 ├── secrets
 ├── backups
-└── build
+├── build
+├── monitoring
+└── volumes
 ```
 
 Nicht Standard:
@@ -230,6 +232,13 @@ Nicht Standard:
 private Home-Verzeichnisse als dauerhafte Produktivbasis.
 
 Historische Altstrukturen können temporär bestehen, bis kontrollierte Migration erfolgt.
+
+Bewusste Ausnahme:
+
+/volume1/home/JaitiNissi1968/Security
+
+Dieses Verzeichnis ist keine Docker-Runtime-Struktur, sondern NAS-Replik der lokalen Security-Struktur.
+Laptop bleibt Source of Truth.
 
 ---
 

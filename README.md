@@ -23,6 +23,50 @@ Dieses Repository ist die Source of Truth für die versionierten Docker-Compose-
 - Keine Blindbereinigung
 - Kontrollierte Migration statt Big Bang
 
+## Infrastrukturstand
+
+Umgesetzte Betriebsstandards:
+
+- Governance / Source of Truth
+- Backup / Restore / Break-Glass
+- Filesystem-Standardisierung
+- Credential Management
+- Frontend Deployment Standardisierung
+- Netzwerkstandardisierung
+- Security Hardening
+- Security-Verzeichnis Synchronisation
+
+## Security-Verzeichnis Synchronisation
+
+Seit Phase 8 wird die lokale Security-Struktur per Syncthing auf das NAS repliziert.
+
+Führendes System:
+
+```text
+C:\Users\Joerg\Documents\Security
+```
+
+NAS-Replik:
+
+```text
+/volume1/home/JaitiNissi1968/Security
+```
+
+Betriebsstandard:
+
+```text
+Laptop = Source of Truth
+NAS = Replik
+Desktop = zusätzlicher Client (optional)
+```
+
+Wichtige Hinweise:
+
+- KeePassXC bleibt Credential Source of Truth.
+- Syncthing ersetzt kein Backup.
+- Die NAS-Replik wird zusätzlich durch das bestehende Backup-Konzept geschützt.
+- Syncthing-Versionierung (.stversions) ist aktiviert.
+
 ## Struktur
 
 ```text
@@ -32,6 +76,7 @@ compose/
   phpmyadmin/
   uptime-kuma/
   portainer/
+  syncthing/
   emc-mitglieder-backend-dev/
   emc-mitglieder-backend-prod/
   emc-mitglieder-frontend-dev/
@@ -50,3 +95,23 @@ runbooks/
   restore-runbook.md
   disaster-recovery.md
 ```
+
+## Dokumentationsgrundsatz
+
+Dokumentation und produktiver Runtime-Stand sollen jederzeit möglichst deckungsgleich sein.
+
+Abweichungen zwischen:
+
+```text
+EMC-INFRA
+```
+
+und
+
+```text
+NAS Runtime
+```
+
+sind zeitnah zu korrigieren.
+
+Das Repository dient gleichzeitig als technische Dokumentation, Recovery-Grundlage und Betriebsreferenz.

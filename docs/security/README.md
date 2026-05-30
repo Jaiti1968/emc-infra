@@ -2,7 +2,7 @@
 
 Dieser Bereich enthält die Security-, Credential-, Secret- und Recovery-Dokumentation der EMC Infrastruktur.
 
-Ziele:
+## Ziele
 
 - kontrollierte Betriebsstandardisierung
 - Recoveryfähigkeit
@@ -12,7 +12,7 @@ Ziele:
 - kontrollierte Credential Rotation
 - dokumentierte Recoverypfade
 
-Wichtige Grundprinzipien:
+## Wichtige Grundprinzipien
 
 - Recovery First
 - keine Blindbereinigung
@@ -23,6 +23,38 @@ Wichtige Grundprinzipien:
   - mitglieder
   - finanzen
   - noten (später)
+
+## Security-Verzeichnis Synchronisation
+
+Seit Phase 8 wird die lokale Security-Struktur zusätzlich auf das NAS repliziert.
+
+Führender Speicherort:
+
+```text
+C:\Users\Joerg\Documents\Security
+```
+
+NAS-Replik:
+
+```text
+/volume1/home/JaitiNissi1968/Security
+```
+
+Betriebsstandard:
+
+```text
+Laptop = Source of Truth
+NAS = Replik
+Desktop = zusätzlicher Client (optional)
+```
+
+Wichtige Hinweise:
+
+- KeePassXC bleibt Credential Source of Truth.
+- Syncthing dient ausschließlich der Replikation.
+- Syncthing ersetzt kein Backup.
+- Die NAS-Replik wird zusätzlich durch das etablierte Backup-Konzept geschützt.
+- Die Syncthing-Dateiversionierung (.stversions) ist aktiviert.
 
 ## Struktur
 
@@ -41,7 +73,14 @@ Break-Glass-, Recovery- und Abhängigkeitsdokumentation.
 ### shared/
 
 Gemeinsame Infrastruktur:
-NAS, Netzwerk, GitHub, Portainer, Monitoring, MariaDB Admin.
+
+- NAS
+- Netzwerk
+- GitHub
+- Portainer
+- Monitoring
+- MariaDB Admin
+- Syncthing
 
 ### mitglieder/
 
@@ -54,3 +93,15 @@ Security- und Credential-Dokumentation der Finanzdomäne.
 ### noten/
 
 Reservierte zukünftige Domäne.
+
+## Dokumentationsgrundsatz
+
+Credential-Dokumentation, Recovery-Dokumentation und produktiver Betriebszustand sollen jederzeit konsistent sein.
+
+Die führenden Informationsquellen sind:
+
+1. KeePassXC
+2. Dokumentation unter `docs/security`
+3. Runtime-Konfiguration auf dem NAS
+
+Abweichungen sind zeitnah zu korrigieren.

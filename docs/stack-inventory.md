@@ -2,31 +2,30 @@
 
 ## Zweck
 
-Dieses Dokument beschreibt den aktuell dokumentierten Betriebsstand der EMC Docker-/NAS-Infrastruktur.
+Dieses Dokument beschreibt den aktuell produktiven Betriebsstand der EMC Docker-/NAS-Infrastruktur.
 
-Stand: Phase 1 Governance / Compose Standardisierung
+Stand: Phase 8 Security-Verzeichnis Synchronisation
 
 Hinweis:
 
-Dies ist ein Ist-Zustandsinventar.
-
-Nicht alle hier dokumentierten Konfigurationen entsprechen bereits dem Zielstandard.
+Dieses Dokument beschreibt den produktiven Betriebsstand nach Abschluss der Phasen 1–8 der EMC NAS Betriebsstandardisierung.
 
 ---
 
 # Stack Übersicht
 
-| Stack                        | Zweck                    | Status                |
-| ---------------------------- | ------------------------ | --------------------- |
-| mariadb                      | zentrale Datenbank       | produktiv             |
-| mariadb-backup               | Datenbank-Backup         | produktiv             |
-| phpmyadmin                   | DB-Webadministration     | produktiv / toleriert |
-| uptime-kuma                  | Monitoring               | produktiv             |
-| portainer                    | Deploymenthilfe          | produktiv             |
-| emc-mitglieder-backend-dev   | Mitglieder Backend DEV   | produktiv             |
-| emc-mitglieder-backend-prod  | Mitglieder Backend PROD  | produktiv             |
-| emc-mitglieder-frontend-dev  | Mitglieder Frontend DEV  | produktiv             |
-| emc-mitglieder-frontend-prod | Mitglieder Frontend PROD | produktiv             |
+| Stack                        | Zweck                                | Status                |
+| ---------------------------- | ------------------------------------ | --------------------- |
+| mariadb                      | zentrale Datenbank                   | produktiv             |
+| mariadb-backup               | Datenbank-Backup                     | produktiv             |
+| phpmyadmin                   | DB-Webadministration                 | produktiv / toleriert |
+| uptime-kuma                  | Monitoring                           | produktiv             |
+| portainer                    | Deploymenthilfe                      | produktiv             |
+| syncthing                    | Security-Verzeichnis Synchronisation | produktiv             |
+| emc-mitglieder-backend-dev   | Mitglieder Backend DEV               | produktiv             |
+| emc-mitglieder-backend-prod  | Mitglieder Backend PROD              | produktiv             |
+| emc-mitglieder-frontend-dev  | Mitglieder Frontend DEV              | produktiv             |
+| emc-mitglieder-frontend-prod | Mitglieder Frontend PROD             | produktiv             |
 
 ---
 
@@ -78,7 +77,8 @@ compose/mariadb/docker-compose.yml
 **Bemerkungen**
 
 - Host-Port aktuell fachlich erforderlich wegen Access
-- Root Passwort aktuell via .env
+- Root Passwort via .env
+- Access-ODBC ist produktive Abhängigkeit
 
 ---
 
@@ -107,7 +107,7 @@ Keine.
 **Volumes**
 
 ```text
-/volume1/home/JaitiNissi1968/docker/backups/mariadb:/backup
+/volume1/docker/backups/mariadb:/backup
 ```
 
 **Netzwerke**
@@ -125,8 +125,9 @@ compose/mariadb-backup/docker-compose.yml
 **Bemerkungen**
 
 - täglicher Backupjob
-- TEST DB aktuell nicht enthalten
-- Backup-Ziel noch Altstruktur
+- Backup-Ziel entspricht Filesystem-Standard
+- dedizierter DB-User emc_backup
+- Bestandteil des Recovery-Konzepts
 
 ---
 
@@ -168,7 +169,9 @@ compose/phpmyadmin/docker-compose.yml
 
 **Bemerkungen**
 
-Aktiv toleriert, Zielarchitektur später prüfen.
+- On-Demand Nutzung empfohlen
+- dauerhaft produktiv toleriert
+- spätere Bewertung möglich
 
 ---
 
@@ -199,13 +202,11 @@ uptime-kuma
 **Volumes**
 
 ```text
-/volume1/home/JaitiNissi1968/docker/volumes/uptime-kuma/data:/app/data
+/volume1/docker/volumes/uptime-kuma/data:/app/data
 /var/run/docker.sock:/var/run/docker.sock:ro
 ```
 
 **Netzwerke**
-
-Runtime prüfen:
 
 ```text
 uptime-kuma_default
@@ -220,7 +221,8 @@ compose/uptime-kuma/docker-compose.yml
 
 **Bemerkungen**
 
-Runtime-Netzwerkzustand weicht vom Compose-Stand ab.
+- Compose und Runtime sind konsistent
+- Monitoring Bestandteil des Recovery-Konzepts
 
 ---
 
@@ -252,8 +254,8 @@ portainer
 **Volumes**
 
 ```text
+/volume1/docker/volumes/portainer/data:/data
 /var/run/docker.sock:/var/run/docker.sock
-../../volumes/portainer/data:/data
 ```
 
 **Konfiguration**
@@ -264,7 +266,58 @@ compose/portainer/docker-compose.yml
 
 **Bemerkungen**
 
-Historische Home-basierte Volume-Struktur.
+- Runtime Verwaltung
+- keine Primärquelle
+- Git bleibt Source of Truth
+
+---
+
+## syncthing
+
+**Zweck**
+
+Security-Verzeichnis Synchronisation.
+
+**Image**
+
+```text
+syncthing/syncthing:latest
+```
+
+**Container**
+
+```text
+syncthing
+```
+
+**Ports**
+
+```text
+8384:8384
+22000:22000/tcp
+22000:22000/udp
+21027:21027/udp
+```
+
+**Volumes**
+
+```text
+/volume1/docker/volumes/syncthing/config:/var/syncthing/config
+/volume1/home/JaitiNissi1968/Security:/var/syncthing/Security
+```
+
+**Konfiguration**
+
+```text
+compose/syncthing/docker-compose.yml
+```
+
+**Bemerkungen**
+
+- Laptop = Source of Truth
+- NAS = Replik
+- Syncthing ersetzt kein Backup
+- Versionierung über .stversions aktiv
 
 ---
 
@@ -277,7 +330,7 @@ DEV Backend.
 **Image**
 
 ```text
-emc-mitglieder-backend:dev
+emc-mitglieder-backend:emc-mitglieder-backend:dev
 ```
 
 **Container**
@@ -313,7 +366,7 @@ PROD Backend.
 **Image**
 
 ```text
-emc-mitglieder-backend:prod
+emc-mitglieder-backend:emc-mitglieder-backend:prod
 ```
 
 **Container**
@@ -349,7 +402,7 @@ DEV Frontend.
 **Image**
 
 ```text
-nginx:alpine
+emc-mitglieder-frontend:emc-mitglieder-frontend:1.1.1-SNAPSHOT-dev
 ```
 
 **Container**
@@ -362,13 +415,6 @@ emc-mitglieder-frontend-dev
 
 ```text
 8082:80
-```
-
-**Volumes**
-
-```text
-/volume1/docker/build/mitglieder-frontend-dev/dist
-/volume1/docker/build/mitglieder-frontend-dev/nginx.conf
 ```
 
 **Netzwerke**
@@ -385,7 +431,9 @@ compose/emc-mitglieder-frontend-dev/docker-compose.yml
 
 **Bemerkungen**
 
-Noch bind-mount Deployment.
+- image-basiertes Deployment
+- Dockerfile versioniert
+- nginx-Konfiguration versioniert
 
 ---
 
@@ -434,39 +482,39 @@ compose/emc-mitglieder-frontend-prod/docker-compose.yml
 
 **Bemerkungen**
 
-Noch bind-mount Deployment.
+- bind-mount Deployment
+- Migration auf image-basiertes Deployment noch ausstehend
 
 ---
 
-# Bekannte Altlasten
+# Historische Altstrukturen
 
-## Docker-Netze
-
-```text
-emc-net
-phpmyadmin_default
-emc-mitglieder-backend-dev_default
-```
-
-## Historische Home-Strukturen
+## Home-basierte Altstruktur
 
 ```text
 /volume1/home/JaitiNissi1968/docker
 ```
 
-Teilweise noch produktiv genutzt.
+Historische Altstruktur.
+
+Produktive Daten wurden weitgehend nach:
+
+```text
+/volume1/docker
+```
+
+migriert.
+
+Verbleibende Nutzung nur in dokumentierten Ausnahmefällen.
 
 ---
 
 # Offene spätere Themen
 
-Nicht Bestandteil Phase 1:
+Nicht Bestandteil der bisherigen Phasen:
 
-- Secret Migration
-- Credential Rotation
-- Netzwerkstandardisierung
-- Backup-Umbau
-- Restore-Tests
-- Frontend Image Migration
-- DB Naming
-- Altlastenbereinigung
+- MariaDB Rollenmodell v2
+- Monitoring Ausbau / echte Healthchecks
+- DB Naming Migration
+- Frontend PROD Image Migration
+- Altlasten-Endbereinigung

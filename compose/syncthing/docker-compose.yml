@@ -1,0 +1,19 @@
+services:
+  syncthing:
+    image: syncthing/syncthing:latest
+    container_name: syncthing
+    hostname: NAS-DH2300-C64C
+    restart: unless-stopped
+
+    ports:
+      - "8384:8384"
+      - "22000:22000/tcp"
+      - "22000:22000/udp"
+      - "21027:21027/udp"
+
+    volumes:
+      - /volume1/docker/volumes/syncthing/config:/var/syncthing
+      - /volume1/home/JaitiNissi1968/Security:/volume1/home/JaitiNissi1968/Security
+
+    environment:
+      TZ: Europe/Berlin

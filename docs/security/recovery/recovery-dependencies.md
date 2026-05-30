@@ -55,7 +55,7 @@ Diese Kette bildet den zentralen Remote-Recoverypfad der EMC Infrastruktur.
 | Funktion          | Internet-Gateway / WireGuard Host |
 | Abhängigkeiten    | Internetzugang                    |
 | Risiken           | Verlust Remotezugriff             |
-| Aktueller Status  | kein Config-Export                |
+| Aktueller Status  | Konfigurationsbackup dokumentiert |
 
 ### Kritische Kopplungen
 
@@ -69,14 +69,14 @@ Nicht gleichzeitig ändern:
 
 ## WireGuard
 
-| Bereich           | Bewertung                         |
-| ----------------- | --------------------------------- |
-| Kritikalität      | kritisch                          |
-| Recovery-Relevanz | kritisch                          |
-| Funktion          | Remotezugriff Heimnetz            |
-| Abhängigkeiten    | Fritz!Box                         |
-| Risiken           | vollständiger Verlust Fernzugriff |
-| Aktueller Status  | kein Export dokumentiert          |
+| Bereich           | Bewertung                           |
+| ----------------- | ----------------------------------- |
+| Kritikalität      | kritisch                            |
+| Recovery-Relevanz | kritisch                            |
+| Funktion          | Remotezugriff Heimnetz              |
+| Abhängigkeiten    | Fritz!Box                           |
+| Risiken           | vollständiger Verlust Fernzugriff   |
+| Aktueller Status  | dokumentierter Recovery-Bestandteil |
 
 ### Kritische Kopplungen
 
@@ -111,13 +111,13 @@ Nicht gleichzeitig ändern:
 
 ## GitHub
 
-| Bereich           | Bewertung                           |
-| ----------------- | ----------------------------------- |
-| Kritikalität      | hoch                                |
-| Recovery-Relevanz | hoch                                |
-| Funktion          | Source of Truth                     |
-| Risiken           | Verlust Infrastruktur-Dokumentation |
-| Aktueller Status  | keine 2FA                           |
+| Bereich           | Bewertung                                 |
+| ----------------- | ----------------------------------------- |
+| Kritikalität      | hoch                                      |
+| Recovery-Relevanz | hoch                                      |
+| Funktion          | Source of Truth                           |
+| Risiken           | Verlust Infrastruktur-Dokumentation       |
+| Aktueller Status  | Repository Bestandteil der Recovery-Kette |
 
 ### Kritische Kopplungen
 
@@ -126,6 +126,49 @@ Nicht gleichzeitig ändern:
 - Passwort
 - 2FA
 - Recoverycodes
+
+---
+
+## Security-Artefakte / Syncthing
+
+| Bereich           | Bewertung                          |
+| ----------------- | ---------------------------------- |
+| Kritikalität      | hoch                               |
+| Recovery-Relevanz | hoch                               |
+| Funktion          | Credential- und Recovery-Artefakte |
+| Primärquelle      | Laptop                             |
+| Replik            | NAS                                |
+| Synchronisation   | Syncthing                          |
+
+### Recovery-Pfade
+
+Primär:
+
+```text
+C:\Users\Joerg\Documents\Security
+```
+
+NAS-Replik:
+
+```text
+/volume1/home/JaitiNissi1968/Security
+```
+
+### Kritische Kopplungen
+
+Nicht gleichzeitig ändern:
+
+- KeePassXC Struktur
+- Syncthing Konfiguration
+- Recovery-Dokumentation
+
+### Grundsatz
+
+```text
+Laptop = Source of Truth
+NAS = Replik
+Desktop = zusätzlicher Client
+```
 
 ---
 
@@ -322,7 +365,16 @@ dbconfig.ini
 
 ---
 
-### 2. NAS
+### 2. Security-Artefakte
+
+- KeePassXC
+- Security-Verzeichnis
+- Syncthing
+- Recovery-Dokumentation
+
+---
+
+### 3. NAS
 
 - SSH
 - sudo
@@ -331,7 +383,7 @@ dbconfig.ini
 
 ---
 
-### 3. Datenbank
+### 4. Datenbank
 
 - MariaDB
 - DB Runtime
@@ -339,7 +391,7 @@ dbconfig.ini
 
 ---
 
-### 4. Runtime
+### 5. Runtime
 
 - Backend
 - Frontend
@@ -348,7 +400,7 @@ dbconfig.ini
 
 ---
 
-### 5. Komfortsysteme
+### 6. Komfortsysteme
 
 - Portainer
 - Uptime Kuma
@@ -366,6 +418,7 @@ dbconfig.ini
 | Remote Recovery     | WireGuard        |
 | Monitoring Recovery | `kuma.db`        |
 | Governance          | GitHub Zugriff   |
+| Credential Recovery | KeePassXC        |
 
 ---
 
@@ -387,6 +440,7 @@ Besonders kritisch:
 - MariaDB Root
 - Backend PROD
 - Access PROD
+- KeePassXC Struktur
 
 ---
 
@@ -405,18 +459,28 @@ ist.
 
 # Gesamtbewertung
 
-Die EMC Infrastruktur besitzt bereits:
+Die EMC Infrastruktur besitzt:
 
-- gute Recovery-Reife
 - getestete Restorefähigkeit
+- dokumentierte Recoverypfade
+- Security-Artefakt-Replikation
 - strukturierte Runtime
 - kontrollierte Betriebsarchitektur
+- dokumentierte Break-Glass-Prozesse
 
 Wesentliche Risiken bestehen aktuell primär in:
 
 - zentralisierten Recovery-Abhängigkeiten
-- fehlenden Exporten
-- fehlender finaler Credential-Governance
+- verbleibenden Single Points of Failure
 - historisch gewachsenen Runtime-Strukturen
 
 Die weitere Härtung erfolgt evolutionär und recovery-sicher.
+
+---
+
+# Änderungslog
+
+| Datum      | Änderung                                                                            |
+| ---------- | ----------------------------------------------------------------------------------- |
+| 2026-05-26 | Initiale Recovery-Dependency-Dokumentation                                          |
+| 2026-05-30 | Phase-8-Erweiterung: Security-Artefakte und Syncthing in Recovery-Kette aufgenommen |
