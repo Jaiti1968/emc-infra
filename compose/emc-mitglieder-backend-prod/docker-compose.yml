@@ -4,9 +4,10 @@ services:
     container_name: emc-mitglieder-backend-prod
     restart: unless-stopped
     environment:
-      DB_URL: jdbc:mariadb://mariadb:3306/emc_mitglieder
-      DB_USERNAME: emc_backend_prod
+      DB_URL: ${DB_URL}
+      DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
+
     networks:
       - emc_net
 
