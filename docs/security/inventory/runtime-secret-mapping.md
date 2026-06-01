@@ -1,252 +1,377 @@
 # Runtime Secret Mapping
 
+Status: Phase 9 Datenbank Rollenmodell / Access-Härtung
+
 ## Zweck
 
 Dieses Dokument beschreibt die Zuordnung zwischen:
 
 - Runtime-Komponenten
-- Datenbank-Usern
+- Datenbankbenutzern
 - Runtime-Secrets
 - Compose-Konfigurationen
 - Secret-Speicherorten
 - fachlichen Domänen
 - Recovery-Abhängigkeiten
 
-Keine produktiven Secretwerte in diesem Dokument.
+Dieses Dokument enthält bewusst keine produktiven Secretwerte.
 
 ---
 
-# Architekturprinzipien
+# Grundprinzipien
 
-## Zielmodell
+## Source of Truth
 
-Produktive Secrets sollen langfristig:
+```text id="1z4v7u"
+KeePass
+=
+Credential Source of Truth
+```
 
-- nicht in Git
-- nicht in produktiven Compose-Dateien
-- nicht in historischen Altstrukturen
+---
 
-liegen.
+## Infrastruktur Source of Truth
 
-Ziel:
+```text id="2c3u3j"
+GitHub
+└── emc-infra
+```
 
-- Runtime-Secrets getrennt
-- Compose clean
-- zentrale Credential Governance
-- recovery-sichere Struktur
+---
+
+## Betriebsrollen
+
+```text id="w06qxr"
+Runtime
+Access
+Administration
+Recovery
+```
+
+werden strikt getrennt.
 
 ---
 
 # Shared Infrastruktur
 
-## MariaDB Container
+## MariaDB
 
-| Bereich               | Wert                             |
-| --------------------- | -------------------------------- |
-| Container             | `mariadb`                        |
-| Secret Typ            | `MYSQL_ROOT_PASSWORD`            |
-| aktueller Speicherort | Container Env + Compose          |
-| Domäne                | shared                           |
-| Kritikalität          | kritisch                         |
-| Recovery-Relevanz     | hoch                             |
-| Zielzustand           | Runtime Secret außerhalb Compose |
+| Bereich           | Wert            |
+| ----------------- | --------------- |
+| Container         | `mariadb`       |
+| Datenbank         | shared          |
+| Secret Typ        | Root Credential |
+| Kritikalität      | kritisch        |
+| Recovery-Relevanz | kritisch        |
+| Credential Source | KeePass         |
+
+Bemerkungen:
+
+- Root nur noch lokal nutzbar
+- `root@localhost`
+- `root@%` entfernt
 
 ---
 
 ## MariaDB Backup
 
-| Bereich               | Wert                       |
-| --------------------- | -------------------------- |
-| Container             | `mariadb-backup`           |
-| DB User               | Backup Runtime User        |
-| Secret Typ            | `MYSQL_USER`, `MYSQL_PASS` |
-| aktueller Speicherort | Container Env + Compose    |
-| Domäne                | shared                     |
-| Kritikalität          | hoch                       |
-| Recovery-Relevanz     | hoch                       |
-| Zielzustand           | separates Runtime Secret   |
+| Bereich           | Wert              |
+| ----------------- | ----------------- |
+| Container         | `mariadb-backup`  |
+| DB User           | `emc_backup`      |
+| Secret Typ        | Backup Credential |
+| Kritikalität      | hoch              |
+| Recovery-Relevanz | hoch              |
+| Credential Source | KeePass           |
 
 ---
 
 ## Uptime Kuma
 
-| Bereich               | Wert                       |
-| --------------------- | -------------------------- |
-| Container             | `uptime-kuma`              |
-| Secret Typ            | Admin / Telegram           |
-| aktueller Speicherort | vermutlich `kuma.db`       |
-| Domäne                | shared                     |
-| Kritikalität          | hoch                       |
-| Recovery-Relevanz     | hoch                       |
-| Hinweis               | `kuma.db` recoverykritisch |
+| Bereich           | Wert          |
+| ----------------- | ------------- |
+| Container         | `uptime-kuma` |
+| Secret Typ        | Admin Login   |
+| Kritikalität      | hoch          |
+| Recovery-Relevanz | hoch          |
+
+Recovery-kritische Daten:
+
+```text id="l0f23p"
+kuma.db
+```
 
 ---
 
 ## Portainer
 
-| Bereich               | Wert             |
-| --------------------- | ---------------- |
-| Container             | `portainer`      |
-| Secret Typ            | Admin Login      |
-| aktueller Speicherort | Portainer Volume |
-| Domäne                | shared           |
-| Kritikalität          | hoch             |
-| Recovery-Relevanz     | hoch             |
+| Bereich           | Wert        |
+| ----------------- | ----------- |
+| Container         | `portainer` |
+| Secret Typ        | Admin Login |
+| Kritikalität      | hoch        |
+| Recovery-Relevanz | hoch        |
 
 ---
 
-# Mitglieder Domäne
-
-## Backend PROD
-
-| Bereich               | Wert                                   |
-| --------------------- | -------------------------------------- |
-| Container             | `emc-mitglieder-backend-prod`          |
-| DB User               | `emc_backend_prod`                     |
-| Secret Typ            | `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` |
-| aktueller Speicherort | Container Env + Compose                |
-| Datenbank             | `emc_mitglieder`                       |
-| Kritikalität          | kritisch                               |
-| Recovery-Relevanz     | hoch                                   |
-| Zielzustand           | separates Runtime Secret               |
-
----
+# Mitgliederverwaltung
 
 ## Backend DEV
 
-| Bereich               | Wert                                   |
-| --------------------- | -------------------------------------- |
-| Container             | `emc-mitglieder-backend-dev`           |
-| DB User               | `emc_backend_dev_rw`                   |
-| Secret Typ            | `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` |
-| aktueller Speicherort | Container Env + Compose                |
-| Datenbank             | `emc_mitglieder_dev`                   |
-| Kritikalität          | hoch                                   |
-| Recovery-Relevanz     | mittel                                 |
-| Zielzustand           | separates Runtime Secret               |
+| Bereich           | Wert                               |
+| ----------------- | ---------------------------------- |
+| Container         | `emc-mitglieder-backend-dev`       |
+| DB User           | `emc_mitglieder_dev_rw`            |
+| Datenbank         | `emc_mitglieder_dev`               |
+| Secret Typ        | DB_URL / DB_USERNAME / DB_PASSWORD |
+| Kritikalität      | hoch                               |
+| Recovery-Relevanz | mittel                             |
+| Credential Source | KeePass                            |
 
 ---
 
-## Frontend PROD
+## Backend PROD
 
-| Bereich              | Wert                              |
-| -------------------- | --------------------------------- |
-| Container            | `emc-mitglieder-frontend-prod`    |
-| Secret Typ           | aktuell keine produktiven Secrets |
-| Runtime-Abhängigkeit | Backend API                       |
-| Kritikalität         | mittel                            |
-| Recovery-Relevanz    | mittel                            |
+| Bereich           | Wert                               |
+| ----------------- | ---------------------------------- |
+| Container         | `emc-mitglieder-backend-prod`      |
+| DB User           | `emc_mitglieder_prod_rw`           |
+| Datenbank         | `emc_mitglieder`                   |
+| Secret Typ        | DB_URL / DB_USERNAME / DB_PASSWORD |
+| Kritikalität      | kritisch                           |
+| Recovery-Relevanz | hoch                               |
+| Credential Source | KeePass                            |
+
+---
+
+## Backend Integration Tests
+
+| Bereich           | Wert                  |
+| ----------------- | --------------------- |
+| Verwendung        | Integrationstests     |
+| DB User           | `emc_backend_test_rw` |
+| Datenbank         | Testumgebung          |
+| Credential Source | KeePass               |
 
 ---
 
 ## Frontend DEV
 
-| Bereich              | Wert                              |
-| -------------------- | --------------------------------- |
-| Container            | `emc-mitglieder-frontend-dev`     |
-| Secret Typ           | aktuell keine produktiven Secrets |
-| Runtime-Abhängigkeit | Backend DEV API                   |
-| Kritikalität         | niedrig                           |
-| Recovery-Relevanz    | niedrig                           |
+Keine produktiven Secrets.
+
+Abhängigkeit:
+
+```text id="ukv0ll"
+Backend DEV API
+```
 
 ---
 
-## Access Mitglieder PROD
+## Frontend PROD
 
-| Bereich               | Wert                           |
-| --------------------- | ------------------------------ |
-| Runtime               | Access Mitglieder PROD         |
-| DB User               | `emc_mitglieder_rw`            |
-| Secret Typ            | ODBC Runtime Credentials       |
-| aktueller Speicherort | `dbconfig.ini`                 |
-| Datenbank             | `emc_mitglieder`               |
-| Kritikalität          | kritisch                       |
-| Recovery-Relevanz     | hoch                           |
-| Zielzustand           | dokumentierte Runtime-Struktur |
+Keine produktiven Secrets.
+
+Abhängigkeit:
+
+```text id="x9f5vb"
+Backend PROD API
+```
 
 ---
 
-## Access Mitglieder DEV
+# Access Mitglieder
 
-| Bereich               | Wert                     |
-| --------------------- | ------------------------ |
-| Runtime               | Access Mitglieder DEV    |
-| DB User               | `emc_mitglieder_dev_rw`  |
-| Secret Typ            | ODBC Runtime Credentials |
-| aktueller Speicherort | `dbconfig_dev.ini`       |
-| Datenbank             | `emc_mitglieder_dev`     |
-| Kritikalität          | hoch                     |
-| Recovery-Relevanz     | mittel                   |
+## DEV
 
----
-
-# Finanzdomäne
-
-## Access Finanzen PROD
-
-| Bereich               | Wert                           |
-| --------------------- | ------------------------------ |
-| Runtime               | Access Finanzen PROD           |
-| DB User               | `emc_finanzen_rw`              |
-| Secret Typ            | ODBC Runtime Credentials       |
-| aktueller Speicherort | `dbconfig.ini`                 |
-| Datenbank             | `emc_finanzen`                 |
-| Kritikalität          | kritisch                       |
-| Recovery-Relevanz     | hoch                           |
-| Zielzustand           | dokumentierte Runtime-Struktur |
+| Bereich           | Wert                           |
+| ----------------- | ------------------------------ |
+| Anwendung         | Access Mitglieder DEV          |
+| DB User           | `emc_access_mitglieder_dev_rw` |
+| Datenbank         | `emc_mitglieder_dev`           |
+| Secret Typ        | ODBC Credential                |
+| Speicherort       | `dbconfig.ini`                 |
+| Credential Source | KeePass                        |
 
 ---
 
-## Access Finanzen DEV
+## PROD RW
 
-| Bereich               | Wert                     |
-| --------------------- | ------------------------ |
-| Runtime               | Access Finanzen DEV      |
-| DB User               | `emc_finanzen_dev_rw`    |
-| Secret Typ            | ODBC Runtime Credentials |
-| aktueller Speicherort | `dbconfig_dev.ini`       |
-| Datenbank             | `emc_finanzen_dev`       |
-| Kritikalität          | hoch                     |
-| Recovery-Relevanz     | mittel                   |
+| Bereich           | Wert                            |
+| ----------------- | ------------------------------- |
+| Anwendung         | Access Mitglieder PROD          |
+| DB User           | `emc_access_mitglieder_prod_rw` |
+| Datenbank         | `emc_mitglieder`                |
+| Secret Typ        | ODBC Credential                 |
+| Speicherort       | `dbconfig.ini`                  |
+| Credential Source | KeePass                         |
+
+---
+
+## PROD RO
+
+| Bereich           | Wert                            |
+| ----------------- | ------------------------------- |
+| Anwendung         | Access Mitglieder PROD          |
+| DB User           | `emc_access_mitglieder_prod_ro` |
+| Datenbank         | `emc_mitglieder`                |
+| Verwendung        | Read Only                       |
+| Credential Source | KeePass                         |
+
+---
+
+# Access Finanzen
+
+## DEV
+
+| Bereich           | Wert                         |
+| ----------------- | ---------------------------- |
+| Anwendung         | Access Finanzen DEV          |
+| DB User           | `emc_access_finanzen_dev_rw` |
+| Datenbank         | `emc_finanzen_dev`           |
+| Secret Typ        | ODBC Credential              |
+| Speicherort       | `dbconfig.ini`               |
+| Credential Source | KeePass                      |
+
+---
+
+## PROD
+
+| Bereich           | Wert                          |
+| ----------------- | ----------------------------- |
+| Anwendung         | Access Finanzen PROD          |
+| DB User           | `emc_access_finanzen_prod_rw` |
+| Datenbank         | `emc_finanzen`                |
+| Secret Typ        | ODBC Credential               |
+| Speicherort       | `dbconfig.ini`                |
+| Credential Source | KeePass                       |
+
+---
+
+# Administration
+
+## Primärer DBA
+
+| Bereich           | Wert                    |
+| ----------------- | ----------------------- |
+| Benutzer          | `JoergTitz`             |
+| Rolle             | `role_emc_admin`        |
+| Verwendung        | tägliche Administration |
+| Credential Source | KeePass                 |
+
+Eigenschaften:
+
+```text id="7jql4j"
+kein GRANT OPTION
+kein Superuser
+```
+
+---
+
+## phpMyAdmin Administrator
+
+| Bereich           | Wert                   |
+| ----------------- | ---------------------- |
+| Benutzer          | `emc_phpmyadmin_admin` |
+| Verwendung        | phpMyAdmin GUI         |
+| Credential Source | KeePass                |
+
+Grund:
+
+```text id="pr6bsz"
+phpMyAdmin 5.2.3 Rollen-Inkompatibilität
+```
+
+---
+
+# Recovery
+
+## Break-Glass
+
+| Bereich           | Wert                |
+| ----------------- | ------------------- |
+| Benutzer          | `root@localhost`    |
+| Verwendung        | Recovery            |
+| Rechte            | vollständige Rechte |
+| Credential Source | KeePass             |
 
 ---
 
 # Aktuelle Secret Speicherorte
 
-## Operative Runtime
+## Produktive Runtime
 
-| Ort                        | Status | Bewertung                |
-| -------------------------- | ------ | ------------------------ |
-| Container Env              | aktiv  | Übergangslösung          |
-| produktive Compose-Dateien | aktiv  | enthält Klartext-Secrets |
-| Access `dbconfig.ini`      | aktiv  | produktiv kritisch       |
-| `kuma.db`                  | aktiv  | Monitoring-kritisch      |
-
----
-
-## Git-Arbeitsstruktur
-
-| Ort                          | Status    | Bewertung                              |
-| ---------------------------- | --------- | -------------------------------------- |
-| lokale `.env` Dateien        | vorhanden | Zielmodell-nah                         |
-| versionierte Compose-Dateien | vorhanden | derzeit teilweise mit Klartext-Secrets |
+| Speicherort           | Status    |
+| --------------------- | --------- |
+| lokale `.env` Dateien | produktiv |
+| Access `dbconfig.ini` | produktiv |
+| `kuma.db`             | produktiv |
+| KeePass               | produktiv |
 
 ---
 
-## Historische Altstrukturen
+## Nicht zulässig
 
-| Ort                        | Status    | Bewertung          |
-| -------------------------- | --------- | ------------------ |
-| alte Home-Compose-Struktur | vorhanden | Altlast            |
-| Portainer Compose Exporte  | vorhanden | Recovery-Artefakte |
-| Recovery Compose Snapshots | vorhanden | bewusst behalten   |
+Nicht erlaubt:
 
----
-
-# Zielstruktur Runtime Secrets
-
-## Shared
-
-```text
-/volume1/docker/secrets/emc/shared
+```text id="ey1dhg"
+Passwörter in Git
+Passwörter in Markdown
+Passwörter in Commit-History
 ```
+
+---
+
+# Recovery-Abhängigkeiten
+
+Credential-Änderungen müssen folgende Systeme berücksichtigen:
+
+```text id="bq57yx"
+MariaDB
+Backup
+Backend DEV
+Backend PROD
+Access Mitglieder
+Access Finanzen
+phpMyAdmin
+Recovery
+```
+
+---
+
+# Zielzustand
+
+Aktueller Zielzustand:
+
+```text id="nt9n3z"
+Runtime sauber getrennt
+Access sauber getrennt
+Administration sauber getrennt
+Recovery sauber getrennt
+```
+
+Credential Source:
+
+```text id="z17zfr"
+KeePass
+```
+
+Recovery Source:
+
+```text id="79k2ha"
+Recovery Dokumentation
+```
+
+Governance Source:
+
+```text id="i8ukvn"
+GitHub emc-infra
+```
+
+---
+
+# Änderungslog
+
+| Datum      | Änderung                                                              |
+| ---------- | --------------------------------------------------------------------- |
+| 2026-05-27 | Initiale Secret-Mapping-Dokumentation                                 |
+| 2026-06-01 | Vollständige Überarbeitung nach Phase 9 Rollenmodell / Access-Härtung |
