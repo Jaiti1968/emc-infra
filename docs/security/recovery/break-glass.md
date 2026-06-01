@@ -1,107 +1,81 @@
 # EMC NAS Betriebsstandardisierung – Break-Glass Dokument
 
-Status: Phase 8 / Security-Verzeichnis Synchronisation
+Status: Phase 9 abgeschlossen
 Ablageziel: `emc-infra/docs/security/recovery/break-glass.md`
+
 Wichtig: Dieses Dokument enthält bewusst keine Klartextpasswörter.
 
 ---
 
-## Zweck
+# Zweck
 
-Dieses Dokument beschreibt den Notfallzugriff auf die EMC NAS-/Docker-/Datenbank-Infrastruktur.
+Dieses Dokument beschreibt den Notfallzugriff auf die EMC NAS-, Docker-, Datenbank- und Access-Infrastruktur.
 
 Break-Glass bedeutet:
 
-> Zugriff und Wiederherstellung müssen auch dann möglich sein, wenn einzelne Systeme, der normale Admin-PC oder das NAS ausfallen.
+> Zugriff und Wiederherstellung müssen auch dann möglich sein, wenn einzelne Systeme, Arbeitsplätze oder Teile der Infrastruktur ausgefallen sind.
 
 ---
 
-## Grundprinzipien
+# Grundprinzipien
 
 - Recovery First.
 - Keine Secrets im Git.
-- Portainer ist operative Runtime-Verwaltung, aber nicht architektonische Primärquelle.
-- GitHub `emc-infra` ist Source of Truth für Compose / Betriebsstruktur.
-- Root- und Admin-Zugänge nur für Break-Glass / Notfall.
-- Recovery-Dokumente dürfen nicht ausschließlich auf dem NAS liegen.
+- KeePass ist Credential Source of Truth.
+- GitHub `emc-infra` ist Infrastruktur Source of Truth.
+- Runtime-, Access-, Administrations- und Recovery-Zugänge sind getrennt.
+- Root-Zugänge sind ausschließlich Break-Glass-Zugänge.
+- Recovery-Dokumentation darf nicht ausschließlich auf dem NAS liegen.
 
 ---
 
-## Kritische Systeme
+# Kritische Systeme
 
-| System              | Zweck                                  | Kritikalität |
-| ------------------- | -------------------------------------- | -----------: |
-| UGREEN DH2300 NAS   | Docker Runtime / Daten / Access Master |     kritisch |
-| MariaDB             | Datenbankkern Mitglieder / Finanzen    |     kritisch |
-| Access Master Share | Access Finanzen / Mitglieder Artefakte |     kritisch |
-| Fritz!Box           | LAN / WireGuard / Netzwerkzugriff      |     kritisch |
-| GitHub              | Recovery Source für Repositories       |     kritisch |
-| Portainer           | operative Docker-Verwaltung            |  mittel-hoch |
-| Uptime Kuma         | Monitoring / Alerting                  |       mittel |
-| Syncthing           | Replikation der Security-Artefakte     |         hoch |
-| Windows PC / Laptop | Access / ODBC / Admin-Arbeitsplatz     |     relevant |
+| System              | Zweck                       | Kritikalität |
+| ------------------- | --------------------------- | -----------: |
+| UGREEN DH2300 NAS   | Docker Runtime / Daten      |     kritisch |
+| MariaDB             | Mitglieder- und Finanzdaten |     kritisch |
+| Access Master Share | Access Anwendungen          |     kritisch |
+| Fritz!Box           | Netzwerk / WireGuard        |     kritisch |
+| GitHub              | Infrastruktur-Recovery      |     kritisch |
+| Portainer           | Runtime-Verwaltung          |         hoch |
+| Uptime Kuma         | Monitoring                  |       mittel |
+| Syncthing           | Security-Replikation        |         hoch |
+| Windows Laptop      | Primärer Arbeitsplatz       |         hoch |
+| Windows Desktop     | Zusätzliche Recovery-Ebene  |     relevant |
 
 ---
 
-## Wichtige bekannte Pfade
+# Infrastruktur Source of Truth
 
-### NAS
-
-```text
-/volume1/docker
-/volume1/docker/compose
-/volume1/docker/docs
-/volume1/docker/runbooks
-/volume1/docker/recovery
-/volume1/docker/secrets
-/volume1/docker/backups
-/volume1/docker/build
-```
-
-### Aktueller MariaDB Backup-Pfad
+## Infrastruktur
 
 ```text
-/volume1/docker/backups/mariadb
+GitHub
+└── emc-infra
 ```
 
-### Externes USB Backup Medium
+---
+
+## Credentials
 
 ```text
-/mnt/@usb/sdc1
+KeePass
 ```
 
-Aktueller Befund:
+---
 
-- Gerät erkannt als `/dev/sdc1`
-- Dateisystem: NTFS
-- Kapazität: ca. 1,8 TB frei
-- NAS-Schreibtest erfolgreich
-- Windows-Lesbarkeit aufgrund NTFS gegeben
-
-### Access Master Share
-
-```text
-\\NAS-DH2300-C64C\apps\access
-```
-
-### Lokale Windows Arbeitskopien
-
-```text
-D:\Chor\Access\emc_mitglieder\dev
-D:\Chor\Access\emc_mitglieder\prod
-D:\Chor\Access\emc_finanzen\dev
-D:\Chor\Access\emc_finanzen\prod
-```
-
-### Security-Artefakte
-
-Führender Speicherort:
+## Security-Artefakte
 
 ```text
 C:\Users\Joerg\Documents\Security
 ```
 
-NAS-Replik:
+Laptop bleibt führendes System.
+
+---
+
+## NAS-Replik
 
 ```text
 /volume1/home/JaitiNissi1968/Security
@@ -113,118 +87,224 @@ Synchronisation:
 Syncthing
 ```
 
-Betriebsmodell:
+---
+
+# Wichtige Pfade
+
+## NAS
 
 ```text
-Laptop = Source of Truth
-NAS = Replik
-Desktop = zusätzlicher Client (optional)
+/volume1/docker
+/volume1/docker/compose
+/volume1/docker/docs
+/volume1/docker/runbooks
+/volume1/docker/recovery
+/volume1/docker/secrets
+/volume1/docker/backups
+/volume1/docker/build
+/volume1/docker/monitoring
+/volume1/docker/volumes
 ```
 
 ---
 
-## Notfall-Recovery Kurzreihenfolge
+## MariaDB Backups
 
-### Szenario: NAS lebt, Anwendung defekt
-
-1. Zugriff per SSH oder NAS Web-UI herstellen.
-2. Docker / Containerstatus prüfen.
-3. Betroffene Compose-Konfiguration aus `emc-infra` bzw. `/volume1/docker/compose` prüfen.
-4. Secrets / `.env` prüfen.
-5. Falls DB betroffen: aktuellen Dump identifizieren.
-6. Restore gemäß DB-Runbook durchführen.
-7. Funktionstest durchführen.
-8. Monitoring prüfen.
+```text
+/volume1/docker/backups/mariadb
+```
 
 ---
 
-### Szenario: NAS vollständig defekt
+## Externes Backup
 
-1. Ersatzsystem / Ersatz-NAS bereitstellen.
-2. Netzwerkzugriff herstellen.
-3. Admin- und SSH-Zugang herstellen.
-4. Docker bereitstellen.
-5. Externes USB Backup Medium anschließen.
-6. Credential-Quelle öffnen.
-7. Security-Verzeichnis auf Laptop prüfen.
-8. Falls NAS-Replik verloren ging, gilt die Laptop-Kopie als führende Quelle.
-9. Syncthing-Konfiguration aus Backup oder Dokumentation wiederherstellen.
-10. GitHub Zugriff herstellen.
-11. `emc-infra` klonen.
-12. Standardstruktur `/volume1/docker` herstellen.
-13. Secrets / `.env` aus Backup wiederherstellen.
-14. Compose Stacks in Reihenfolge wiederherstellen:
-    1. MariaDB
-    2. Uptime Kuma
-    3. Portainer
-    4. Syncthing
-    5. Backend DEV
-    6. Backend PROD
-    7. Frontend DEV
-    8. Frontend PROD
-    9. phpMyAdmin nur bei Bedarf
-
-15. Datenbanken aus Dumps wiederherstellen, falls Datenvolume nicht verfügbar.
-16. Access Master-Artefakte wiederherstellen.
-17. Windows Access-Arbeitskopien testen.
-18. ODBC / DSN-less Verbindung prüfen.
-19. Monitoring / Telegram Alerting prüfen.
-20. Backupjob wieder aktivieren und testen.
+```text
+/mnt/@usb/sdc1
+```
 
 ---
 
-## Break-Glass Zugänge
-
-Die eigentlichen Zugangsdaten liegen nicht in diesem Dokument.
-
-Siehe:
+## Access Master Share
 
 ```text
-docs/security/credential-inventory.md
+\\NAS-DH2300-C64C\apps\access
 ```
-
-Credential Source of Truth:
-
-```text
-KeePassXC
-```
-
-Führender Speicherort:
-
-```text
-C:\Users\Joerg\Documents\Security
-```
-
-NAS-Replik:
-
-```text
-/volume1/home/JaitiNissi1968/Security
-```
-
-Die eigentlichen Zugangsdaten befinden sich ausschließlich in KeePassXC und nicht in dieser Dokumentation.
 
 ---
 
-## Minimal benötigte Zugänge im Notfall
+## Lokale Arbeitskopien
 
-| Zweck                | Zugang                          |
-| -------------------- | ------------------------------- |
-| NAS Verwaltung       | NAS Admin                       |
-| Shell / Docker       | SSH User mit sudo               |
-| Netzwerk / VPN       | Fritz!Box Admin                 |
-| DB Recovery          | MariaDB Root                    |
-| Infra Recovery       | GitHub Account                  |
-| Runtime Recovery     | Portainer Admin                 |
-| Monitoring           | Uptime Kuma Admin               |
-| Access Recovery      | Windows Admin / Access Umgebung |
-| Security-Artefakte   | KeePassXC Datenbank             |
-| Security-Replikation | Syncthing Verwaltung            |
+```text
+D:\Chor\Access\emc_mitglieder\dev
+D:\Chor\Access\emc_mitglieder\prod
+
+D:\Chor\Access\emc_finanzen\dev
+D:\Chor\Access\emc_finanzen\prod
+```
 
 ---
 
-## Recovery der Security-Artefakte
+# Break-Glass Zugänge
 
-Die Security-Artefakte sind Bestandteil der Recovery-Kette.
+## Recovery Administrator
+
+### root@localhost
+
+Zweck:
+
+```text
+letzter Recovery-Zugang
+```
+
+Verwendung:
+
+```text
+NAS Shell
+Docker Konsole
+MariaDB Recovery
+```
+
+Eigenschaften:
+
+```text
+vollständige Rechte
+lokal nutzbar
+```
+
+Wichtige Änderung:
+
+```text
+root@% wurde entfernt
+```
+
+Root ist nicht mehr über Netzwerk nutzbar.
+
+---
+
+## Primärer DBA
+
+### JoergTitz
+
+Zweck:
+
+```text
+tägliche Administration
+Datenbankbetrieb
+Recovery-Unterstützung
+```
+
+Rolle:
+
+```text
+role_emc_admin
+```
+
+Eigenschaften:
+
+```text
+administrativer Zugriff
+kein GRANT OPTION
+```
+
+Standardzugang für Datenbankadministration.
+
+---
+
+## phpMyAdmin Administration
+
+### emc_phpmyadmin_admin
+
+Zweck:
+
+```text
+GUI Administration
+```
+
+Verwendung:
+
+```text
+phpMyAdmin
+Benutzerverwaltung
+Rollenverwaltung
+```
+
+Grund:
+
+```text
+phpMyAdmin 5.2.3 Rollen-Inkompatibilität
+```
+
+Nicht für Anwendungen verwenden.
+
+---
+
+# Minimal benötigte Zugänge
+
+| Zweck                | Zugang                  |
+| -------------------- | ----------------------- |
+| NAS Verwaltung       | NAS Admin               |
+| Shell / Docker       | SSH User JaitiNissi1968 |
+| Netzwerk             | Fritz!Box Admin         |
+| DB Recovery          | root@localhost          |
+| DB Administration    | JoergTitz               |
+| phpMyAdmin GUI       | emc_phpmyadmin_admin    |
+| Git Recovery         | GitHub Account          |
+| Runtime Recovery     | Portainer Admin         |
+| Monitoring           | Uptime Kuma Admin       |
+| Access Recovery      | Windows Arbeitsplatz    |
+| Security Recovery    | KeePass                 |
+| Security-Replikation | Syncthing               |
+
+---
+
+# Recovery-Kurzablauf
+
+## NAS lebt, Anwendung gestört
+
+1. NAS oder SSH Zugriff herstellen
+2. Containerstatus prüfen
+3. Compose-Konfiguration prüfen
+4. Runtime-Secrets prüfen
+5. Datenbankstatus prüfen
+6. Monitoring prüfen
+7. Funktionstest durchführen
+
+---
+
+## NAS vollständig ausgefallen
+
+1. Ersatzsystem bereitstellen
+2. Netzwerkzugriff herstellen
+3. KeePass öffnen
+4. GitHub Zugriff herstellen
+5. emc-infra bereitstellen
+6. Standardstruktur erzeugen
+7. Secrets wiederherstellen
+8. Docker installieren
+9. Stacks wiederherstellen
+
+Reihenfolge:
+
+```text
+1 MariaDB
+2 Uptime Kuma
+3 Portainer
+4 Syncthing
+5 Backend DEV
+6 Backend PROD
+7 Frontend DEV
+8 Frontend PROD
+9 phpMyAdmin
+```
+
+10. Datenbank-Restore durchführen
+11. Access testen
+12. Monitoring testen
+13. Backup testen
+
+---
+
+# Recovery der Security-Artefakte
 
 Primärquelle:
 
@@ -238,33 +318,37 @@ NAS-Replik:
 /volume1/home/JaitiNissi1968/Security
 ```
 
-Synchronisation erfolgt über Syncthing.
+Betriebsmodell:
 
-Wichtige Grundsätze:
+```text
+Laptop = Source of Truth
+NAS = Replik
+Desktop = zusätzliche Recovery-Ebene
+```
 
-- Laptop bleibt Source of Truth.
-- NAS dient als Replikat.
+Grundsätze:
+
+- Laptop bleibt führend.
 - Syncthing ersetzt kein Backup.
-- Die NAS-Replik wird zusätzlich durch das bestehende Backup-Konzept geschützt.
-- Die Syncthing-Versionierung (`.stversions`) unterstützt die Wiederherstellung versehentlich gelöschter oder beschädigter Dateien.
+- NAS dient als zusätzliche Recovery-Ebene.
+- `.stversions` unterstützt Dateiwiederherstellung.
 
 ---
 
-## Nicht Bestandteil dieser Phase
+# Nicht Bestandteil
 
-- Credential Rotation
-- GitHub MFA Einführung
+- MFA-Einführung
 - Docker Secrets Migration
-- Netzwerk-Härtung
-- DB-User-Härtung
-
-Diese Themen bleiben separaten Folgephasen vorbehalten.
+- Reverse Proxy
+- Netzwerksegmentierung
+- zukünftige Security-Hardening-Maßnahmen
 
 ---
 
-## Änderungslog
+# Änderungslog
 
-| Datum      | Änderung                                                                         |
-| ---------- | -------------------------------------------------------------------------------- |
-| 2026-05-26 | Initiales Break-Glass Dokument für Phase 2 erstellt                              |
-| 2026-05-30 | Phase-8-Erweiterung: Syncthing und Security-Artefakte in Break-Glass aufgenommen |
+| Datum      | Änderung                                                                   |
+| ---------- | -------------------------------------------------------------------------- |
+| 2026-05-26 | Initiale Version Phase 2                                                   |
+| 2026-05-30 | Syncthing und Security-Replikation ergänzt                                 |
+| 2026-06-01 | Rollenmodell, DBA-Modell, phpMyAdmin-Admin und root@localhost aktualisiert |

@@ -1,205 +1,393 @@
 # EMC NAS Betriebsstandardisierung – Access Recovery Runbook
 
-Status: Phase 2 / Break-Glass Foundation  
-Ablageziel: `emc-infra/docs/security/access-recovery.md`  
+Status: Phase 9 abgeschlossen
+Ablageziel: `emc-infra/docs/security/recovery/access-recovery.md`
+
 Wichtig: Dieses Dokument enthält bewusst keine Klartextpasswörter.
 
 ---
 
-## Zweck
+# Zweck
 
-Dieses Dokument beschreibt den Recovery-Ansatz für die produktiv relevante Access-Welt im EMC Betrieb.
+Dieses Dokument beschreibt Recovery, Wiederherstellung und Betrieb der produktiv relevanten Access-Welt.
 
-Access ist weiterhin aktiver Bestandteil der Zielarchitektur:
-
-- Finanzen: Access-first
-- Mitglieder: Service-first, aber Access-supporting für Restfunktionen, Reporting und Fallback
-
----
-
-## Grundmodell
+Access bleibt Bestandteil der Zielarchitektur:
 
 ```text
-NAS Master-Artefakte
-→ lokale Windows Arbeitskopie
-→ Access Start lokal
-→ DSN-less MariaDB ODBC Verbindung
+Finanzen
+=
+Access First
+
+Mitglieder
+=
+Service First
+Access Supporting
 ```
 
-Der NAS-Bestand ist der Master.
-Lokale Windows-Kopien sind Arbeitskopien und kein primäres Backupziel.
+Verwendet für:
+
+- Restfunktionen
+- Fallback-Betrieb
+- Reporting
+- Fachliche Spezialfunktionen
 
 ---
 
-## Relevante NAS Master-Pfade
+# Architekturmodell
+
+## Source of Truth
+
+```text
+NAS
+└── \\NAS-DH2300-C64C\apps\access
+```
+
+---
+
+## Arbeitskopien
+
+```text
+NAS Master
+        ↓
+Lokale Windows Arbeitskopie
+        ↓
+Access lokal
+        ↓
+MariaDB
+```
+
+Die lokale Arbeitskopie ist ausdrücklich nicht Source of Truth.
+
+---
+
+# Master-Pfade NAS
 
 ```text
 \\NAS-DH2300-C64C\apps\access\emc_mitglieder\dev
 \\NAS-DH2300-C64C\apps\access\emc_mitglieder\prod
+
 \\NAS-DH2300-C64C\apps\access\emc_finanzen\dev
 \\NAS-DH2300-C64C\apps\access\emc_finanzen\prod
 ```
 
 ---
 
-## Relevante lokale Windows-Zielpfade
+# Lokale Arbeitskopien
 
-Lokale Windows-Arbeitskopiepfade sind geräteabhängig.
-
-Beispiele aus dem aktuellen Betrieb:
-
-### Desktop-PC
+## Desktop
 
 ```text
 D:\Chor\Access\emc_mitglieder\dev
 D:\Chor\Access\emc_mitglieder\prod
+
 D:\Chor\Access\emc_finanzen\dev
 D:\Chor\Access\emc_finanzen\prod
 ```
 
-### Laptop
+---
+
+## Laptop
 
 ```text
 C:\Users\Joerg\Chor\Access\emc_mitglieder\dev
 C:\Users\Joerg\Chor\Access\emc_mitglieder\prod
+
 C:\Users\Joerg\Chor\Access\emc_finanzen\dev
 C:\Users\Joerg\Chor\Access\emc_finanzen\prod
 ```
 
-### Wichtiger Architekturhinweis
+---
 
-Diese lokalen Windows-Pfade sind **nicht Source of Truth**.
+# Technische Voraussetzungen
 
-Verbindliche Source of Truth für Access-Artefakte ist:
+| Komponente          | Vorgabe                 |
+| ------------------- | ----------------------- |
+| Microsoft Access    | erforderlich            |
+| MariaDB ODBC Driver | MariaDB ODBC 3.2 Driver |
+| Verbindung          | DSN-less                |
+| Netzwerkzugriff NAS | erforderlich            |
+| MariaDB Zugriff     | Port 3306               |
+
+---
+
+# Datenbankarchitektur
+
+## DSN-less Betrieb
+
+Die Access-Anwendungen verwenden keine Windows-DSN-Konfiguration.
+
+Verbindungsaufbau erfolgt ausschließlich über:
 
 ```text
-\\NAS-DH2300-C64C\apps\access
+dbconfig.ini
 ```
 
-Die lokalen Pfade sind ausschließlich geräteabhängige Arbeitskopien für:
+---
 
-- produktiven Betrieb
-- lokale Access-Nutzung
-- Recovery / Break-Glass Wiederherstellung auf einem beliebigen Windows-System
+## Verbindungsaufbau
 
-Konsequenz:
+Verwendete Funktion:
 
-Recovery ist **nicht an ein bestimmtes Laufwerk oder Gerät gebunden**, solange verfügbar sind:
+```text
+BuildMariaDbConnectString()
+```
 
-- Microsoft Access
-- MariaDB ODBC 3.2 Driver
-- Zugriff auf die NAS Source of Truth
-- passende dbconfig-Dateien
+Die Verbindung wird dynamisch aus der lokalen:
+
+```text
+dbconfig.ini
+```
+
+erzeugt.
+
+Beispielinhalt:
+
+```text
+APP_ENV=DEV
+
+DRIVER={MariaDB ODBC 3.2 Driver}
+SERVER=192.168.178.63
+PORT=3306
+DATABASE=...
+UID=...
+PWD=...
+```
 
 ---
 
-## Technische Voraussetzungen Windows
+# Recovery-Vorteile
 
-| Komponente          | Status / Vorgabe                           |
-| ------------------- | ------------------------------------------ |
-| Microsoft Access    | erforderlich                               |
-| MariaDB ODBC Driver | MariaDB ODBC 3.2 Driver                    |
-| Verbindungstyp      | DSN-less                                   |
-| Netzwerkzugriff NAS | erforderlich                               |
-| Zugriff MariaDB     | `192.168.178.63:3306` aktuell erforderlich |
+Durch DSN-less Betrieb:
+
+```text
+kein System-DSN
+keine Registry-Abhängigkeit
+keine ODBC-Konfiguration notwendig
+```
+
+Recovery benötigt lediglich:
+
+```text
+Access Datei
+dbconfig.ini
+MariaDB ODBC Driver
+```
 
 ---
 
-## DSN-less Hinweis
+# Benutzerrotation
 
-Die Access-Verbindung arbeitet DSN-less.
+Architekturziel:
+
+```text
+Credential-Wechsel
+ohne Neuverknüpfung
+```
+
+möglich.
+
+Dies wurde in Phase 9 erfolgreich validiert.
+
+---
+
+# Automatischer Relink
+
+## Mitglieder
+
+Verwendet:
+
+```text
+BuildMariaDbConnectString()
+CheckMariaDBConnection()
+```
+
+Erweiterung Phase 9:
+
+```text
+Automatischer Relink
+vor Verbindungsprüfung
+```
 
 Vorteil:
 
-- kein Windows-System-DSN muss rekonstruiert werden
-- weniger Abhängigkeit vom lokalen Windows ODBC Manager
-- Recovery erfolgt primär über Access-Datei + dbconfig
+```text
+Benutzerwechsel
+Passwortwechsel
+Credential Rotation
+```
 
-Wichtig:
-
-- MariaDB ODBC 3.2 Driver muss installiert sein.
-- dbconfig-Dateien müssen korrekt vorhanden sein.
-- Credentials gehören nicht in Git.
+ohne manuelle Tabellenpflege.
 
 ---
 
-## Recovery Access-Artefakte
+## Finanzen
 
-Bei Restore müssen je Umgebung geprüft werden:
+Verwendet:
 
-- Access-Datei (`.accdb`)
-- passende `dbconfig_*.ini`
-- lokale `dbconfig.ini`
-- bei Finanzen zusätzlich Excel-Artefakte, insbesondere `EMCFinanzen.xlsx` sofern vorhanden
+```text
+BuildMariaDbConnectString()
+RebuildFinanzenDevLinks_SavePwd()
+```
 
----
+Phase-9-Erkenntnis:
 
-## Recovery Ablauf – Access Master vom Backup wiederherstellen
+```text
+dbAttachSavePWD
+nicht erforderlich
+```
 
-1. Backup-Quelle identifizieren.
-2. Zielpfad unter `\\NAS-DH2300-C64C\apps\access` prüfen.
-3. Betroffene Umgebung bestimmen:
-   - Mitglieder DEV
-   - Mitglieder PROD
-   - Finanzen DEV
-   - Finanzen PROD
-4. Access-Datei wiederherstellen.
-5. dbconfig-Dateien wiederherstellen.
-6. Excel-Artefakte wiederherstellen, falls betroffen.
-7. Dateigrößen und Änderungsdatum plausibilisieren.
-8. Lokale Windows-Arbeitskopie neu erzeugen.
-9. Access lokal starten.
-10. Verbindung zur MariaDB prüfen.
-11. Fachlichen Starttest durchführen.
+ODBC-Verbindung wird vollständig aus der Konfigurationsdatei aufgebaut.
 
 ---
 
-## Recovery Ablauf – Lokale Windows Arbeitskopie neu erzeugen
+# Produktive Datenbankbenutzer
 
-1. Zielordner unter `D:\Chor\Access\...` prüfen oder neu anlegen.
-2. Aktuelle Master-Artefakte vom NAS kopieren.
-3. Passende `dbconfig_*.ini` als lokale `dbconfig.ini` bereitstellen.
-4. Access-Datei lokal öffnen.
-5. Verbindungstest durchführen.
-6. Fachliche Maske / Startfunktion prüfen.
+## Mitglieder DEV
 
----
-
-## Fachlicher Minimaltest
-
-Nach Restore mindestens prüfen:
-
-- Access-Datei öffnet ohne Fehler.
-- MariaDB Verbindung funktioniert.
-- Startmaske / Hauptfunktion öffnet.
-- Finanzen: Excel-Artefakt vorhanden, falls benötigt.
-- Mitglieder: relevante Restfunktionen / Berichte sind erreichbar.
+```text
+emc_access_mitglieder_dev_rw
+```
 
 ---
 
-## Bekannte Recovery-Abhängigkeiten
+## Mitglieder PROD RW
 
-| Abhängigkeit            | Bedeutung                                     |
-| ----------------------- | --------------------------------------------- |
-| MariaDB erreichbar      | Access benötigt direkten DB-Zugriff           |
-| Port 3306 erreichbar    | aktuell fachlich erforderlich                 |
-| dbconfig korrekt        | Umgebung / DB / User werden darüber gesteuert |
-| ODBC Driver installiert | MariaDB Verbindung notwendig                  |
-| NAS Share verfügbar     | Master-Artefakte liegen auf NAS               |
+```text
+emc_access_mitglieder_prod_rw
+```
 
 ---
 
-## Nicht Bestandteil dieser Phase
+## Mitglieder PROD RO
 
-- Entscheidung zur Ablösung von Access-Berichten
-- Reduktion MariaDB Host-Port 3306
-- Credential Rotation
-- Umbau auf neues Secret-Modell
+```text
+emc_access_mitglieder_prod_ro
+```
 
 ---
 
-## Änderungslog
+## Finanzen DEV
 
-| Datum      | Änderung                                               |
-| ---------- | ------------------------------------------------------ |
-| 2026-05-26 | Initiales Access Recovery Runbook für Phase 2 erstellt |
+```text
+emc_access_finanzen_dev_rw
+```
+
+---
+
+## Finanzen PROD
+
+```text
+emc_access_finanzen_prod_rw
+```
+
+---
+
+# Recovery Access-Artefakte
+
+Je Umgebung prüfen:
+
+```text
+.accdb Datei
+dbconfig.ini
+dbconfig_*.ini
+Batch-Dateien
+Hilfsdateien
+```
+
+Zusätzlich bei Finanzen:
+
+```text
+EMCFinanzen.xlsx
+```
+
+falls vorhanden.
+
+---
+
+# Recovery Master-Artefakte
+
+1. Backup identifizieren
+2. NAS-Zielpfad bestimmen
+3. Dateien wiederherstellen
+4. dbconfig-Dateien wiederherstellen
+5. Dateigrößen prüfen
+6. Änderungsdatum prüfen
+7. Arbeitskopie neu erzeugen
+8. Access starten
+9. Verbindung testen
+10. Fachtest durchführen
+
+---
+
+# Recovery Arbeitskopie
+
+1. Lokalen Zielordner anlegen
+2. Aktuelle NAS-Artefakte kopieren
+3. Richtige dbconfig bereitstellen
+4. Access starten
+5. Verbindung prüfen
+6. Fachtest durchführen
+
+---
+
+# Minimaltest
+
+Nach Recovery mindestens prüfen:
+
+```text
+Access startet
+Datenbankverbindung funktioniert
+Startmaske funktioniert
+Formulare funktionieren
+Berichte erreichbar
+```
+
+---
+
+# Bekannte Abhängigkeiten
+
+| Abhängigkeit            | Bedeutung            |
+| ----------------------- | -------------------- |
+| MariaDB erreichbar      | Datenzugriff         |
+| Port 3306 erreichbar    | Datenzugriff         |
+| dbconfig.ini korrekt    | Verbindungsparameter |
+| ODBC Driver installiert | Datenbanktreiber     |
+| NAS Share verfügbar     | Master-Artefakte     |
+
+---
+
+# Validierte Plattformen
+
+Erfolgreich getestet:
+
+```text
+Laptop
+Desktop
+```
+
+für:
+
+```text
+Mitglieder DEV
+Mitglieder PROD
+Finanzen DEV
+Finanzen PROD
+```
+
+---
+
+# Nicht Bestandteil
+
+- Ablösung von Access-Berichten
+- Port-Reduktion MariaDB
+- zukünftige Secret-Migration
+- zukünftige Access-Ablösung
+
+---
+
+# Änderungslog
+
+| Datum      | Änderung                                                                           |
+| ---------- | ---------------------------------------------------------------------------------- |
+| 2026-05-26 | Initiale Version Phase 2                                                           |
+| 2026-06-01 | DSN-less Recovery-Konzept, Benutzerrotation und Access-Härtung aus Phase 9 ergänzt |

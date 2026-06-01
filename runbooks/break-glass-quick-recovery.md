@@ -1,6 +1,6 @@
 # Break-Glass Quick Recovery
 
-Status: Phase 8 Security-Verzeichnis Synchronisation
+Status: Phase 9 Datenbank Rollenmodell / Access-Härtung
 
 ## Zweck
 
@@ -37,11 +37,24 @@ Vorhanden?
 
 ---
 
+### Kritische Administrationszugänge
+
+Prüfen:
+
+```text
+JaitiNissi1968
+JoergTitz
+emc_phpmyadmin_admin
+root@localhost
+```
+
+---
+
 ### Recovery-Artefakte
 
 Vorhanden?
 
-- KeePassXC
+- KeePass
 - Credential Inventory
 - Break-Glass Dokument
 - Recovery Dependencies
@@ -111,11 +124,19 @@ DB Restore
 
 Prüfen:
 
-- MariaDB Status
-- Benutzer
-- Berechtigungen
-- Backups
-- Restorefähigkeit
+```text
+MariaDB Status
+Rollenmodell
+Runtime User
+Access User
+```
+
+Wichtige Benutzer:
+
+```text
+JoergTitz
+root@localhost
+```
 
 ---
 
@@ -129,10 +150,13 @@ Access Restore
 
 Prüfen:
 
-- ODBC / DSN-less Verbindung
-- dbconfig.ini
-- Netzwerkverbindung
-- Datenbankzugriff
+```text
+DSN-less Verbindung
+dbconfig.ini
+BuildMariaDbConnectString()
+Netzwerkverbindung
+Datenbankzugriff
+```
 
 ---
 
@@ -141,15 +165,17 @@ Prüfen:
 Maßnahme:
 
 ```text
-KeePassXC prüfen
+KeePass prüfen
 ```
 
 Prüfen:
 
-- Security-Verzeichnis
-- NAS-Replik
-- Syncthing Status
-- Credential Inventory
+```text
+Security-Verzeichnis
+NAS-Replik
+Syncthing Status
+Credential Inventory
+```
 
 ---
 
@@ -163,11 +189,13 @@ Bare Metal Recovery
 
 Prüfen:
 
-- Ersatzhardware
-- USB Backup
-- KeePassXC
-- GitHub
-- Security-Verzeichnis
+```text
+Ersatzhardware
+USB Backup
+KeePass
+GitHub
+Security-Verzeichnis
+```
 
 ---
 
@@ -175,7 +203,8 @@ Prüfen:
 
 Nicht ohne Recoverybewertung:
 
-- MariaDB Root ändern
+- root@localhost ändern
+- JoergTitz ändern
 - Fritz!Box Passwort ändern
 - WireGuard neu erzeugen
 - SSH Benutzer löschen
@@ -189,7 +218,9 @@ Nicht ohne Recoverybewertung:
 
 Keine ungeprüften Schnellschüsse auf Produktivsystem.
 
-Recovery First.
+```text
+Recovery First
+```
 
 Dokumentation vor Änderungen prüfen.
 
@@ -200,14 +231,15 @@ Dokumentation vor Änderungen prüfen.
 - Break-Glass Dokument
 - Recovery Dependencies
 - Bare Metal NAS Recovery
-- Datenbank Restore Runbook
+- Access Recovery
 - Credential Inventory
 
 ---
 
 ## Änderungslog
 
-| Datum      | Änderung                                                      |
-| ---------- | ------------------------------------------------------------- |
-| 2026-05-26 | Initiales Quick-Recovery Dokument erstellt                    |
-| 2026-05-30 | Phase-8-Erweiterung: Security-Artefakte und Syncthing ergänzt |
+| Datum      | Änderung                                            |
+| ---------- | --------------------------------------------------- |
+| 2026-05-26 | Initiale Version                                    |
+| 2026-05-30 | Security-Artefakte und Syncthing ergänzt            |
+| 2026-06-01 | Rollenmodell, DBA-Modell und Access-Härtung ergänzt |

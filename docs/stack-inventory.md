@@ -2,13 +2,7 @@
 
 ## Zweck
 
-Dieses Dokument beschreibt den aktuell produktiven Betriebsstand der EMC Docker-/NAS-Infrastruktur.
-
-Stand: Phase 8 Security-Verzeichnis Synchronisation
-
-Hinweis:
-
-Dieses Dokument beschreibt den produktiven Betriebsstand nach Abschluss der Phasen 1–8 der EMC NAS Betriebsstandardisierung.
+Dieses Dokument beschreibt den aktuell produktiven Betriebsstand der EMC Infrastruktur einschließlich aller produktiv betriebenen Docker-Stacks, deren Zweck, Betriebsstatus und wesentlichen Betriebsparameter.
 
 ---
 
@@ -79,6 +73,12 @@ compose/mariadb/docker-compose.yml
 - Host-Port aktuell fachlich erforderlich wegen Access
 - Root Passwort via .env
 - Access-ODBC ist produktive Abhängigkeit
+- Runtime- und Access-Benutzer vollständig getrennt
+- Rollenmodell Phase 9 produktiv umgesetzt
+- root@% entfernt
+- root@localhost verbleibt als Break-Glass-Zugang
+- Primärer DBA: JoergTitz
+- phpMyAdmin verwendet dedizierten GUI-Admin (emc_phpmyadmin_admin)
 
 ---
 
@@ -171,7 +171,9 @@ compose/phpmyadmin/docker-compose.yml
 
 - On-Demand Nutzung empfohlen
 - dauerhaft produktiv toleriert
-- spätere Bewertung möglich
+- phpMyAdmin 5.2.3 zeigt Rollen-Inkompatibilität bei rein rollenbasierten Admin-Benutzern
+- Standardzugang für GUI-Administration: emc_phpmyadmin_admin
+- Datenbankadministration erfolgt primär über JoergTitz (CLI)
 
 ---
 
@@ -513,7 +515,6 @@ Verbleibende Nutzung nur in dokumentierten Ausnahmefällen.
 
 Nicht Bestandteil der bisherigen Phasen:
 
-- MariaDB Rollenmodell v2
 - Monitoring Ausbau / echte Healthchecks
 - DB Naming Migration
 - Frontend PROD Image Migration

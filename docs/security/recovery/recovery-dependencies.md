@@ -9,10 +9,10 @@ Ziel:
 - Recovery-Reihenfolgen nachvollziehbar dokumentieren
 - Lockout-Risiken minimieren
 - gekoppelte Credentials identifizieren
-- sichere Credential Rotation ermöglichen
+- sichere Credential-Rotation ermöglichen
 - Break-Glass-Recovery absichern
 
-Keine produktiven Secretwerte in diesem Dokument.
+Dieses Dokument enthält bewusst keine Secrets.
 
 ---
 
@@ -20,13 +20,42 @@ Keine produktiven Secretwerte in diesem Dokument.
 
 Recoveryfähigkeit hat höhere Priorität als maximale Security-Härte.
 
-Credential-Änderungen erfolgen nur kontrolliert und mit Recoverybewertung.
+Credential-Änderungen erfolgen ausschließlich kontrolliert und mit Recoverybewertung.
+
+---
+
+# Source of Truth
+
+## Infrastruktur
+
+```text
+GitHub
+└── emc-infra
+```
+
+---
+
+## Credentials
+
+```text
+KeePass
+```
+
+---
+
+## Security-Artefakte
+
+```text
+C:\Users\Joerg\Documents\Security
+```
+
+Laptop bleibt führendes System.
 
 ---
 
 # Zentrale Recovery-Kette
 
-## Aktuelle Hauptkette
+## Hauptkette
 
 ```text
 Internet
@@ -40,7 +69,7 @@ Internet
 → Anwendungen
 ```
 
-Diese Kette bildet den zentralen Remote-Recoverypfad der EMC Infrastruktur.
+Diese Kette bildet den zentralen Remote-Recoverypfad.
 
 ---
 
@@ -48,101 +77,99 @@ Diese Kette bildet den zentralen Remote-Recoverypfad der EMC Infrastruktur.
 
 ## Fritz!Box
 
-| Bereich           | Bewertung                         |
-| ----------------- | --------------------------------- |
-| Kritikalität      | kritisch                          |
-| Recovery-Relevanz | kritisch                          |
-| Funktion          | Internet-Gateway / WireGuard Host |
-| Abhängigkeiten    | Internetzugang                    |
-| Risiken           | Verlust Remotezugriff             |
-| Aktueller Status  | Konfigurationsbackup dokumentiert |
+Kritikalität:
 
-### Kritische Kopplungen
+```text
+kritisch
+```
+
+Funktion:
+
+```text
+Internet
+WireGuard
+Netzwerk
+```
 
 Nicht gleichzeitig ändern:
 
-- Fritz!Box Admin Passwort
-- WireGuard-Konfiguration
-- DynDNS-/MyFritz-Zugänge
+```text
+Fritz!Box Passwort
+WireGuard
+DynDNS
+```
 
 ---
 
 ## WireGuard
 
-| Bereich           | Bewertung                           |
-| ----------------- | ----------------------------------- |
-| Kritikalität      | kritisch                            |
-| Recovery-Relevanz | kritisch                            |
-| Funktion          | Remotezugriff Heimnetz              |
-| Abhängigkeiten    | Fritz!Box                           |
-| Risiken           | vollständiger Verlust Fernzugriff   |
-| Aktueller Status  | dokumentierter Recovery-Bestandteil |
+Kritikalität:
 
-### Kritische Kopplungen
+```text
+kritisch
+```
+
+Funktion:
+
+```text
+Remotezugriff
+```
 
 Nicht gleichzeitig ändern:
 
-- WireGuard
-- NAS SSH Zugang
-- Fritz!Box Zugriff
+```text
+WireGuard
+NAS SSH
+Fritz!Box Zugriff
+```
 
 ---
 
 ## NAS / SSH / sudo
 
-| Bereich           | Bewertung                       |
-| ----------------- | ------------------------------- |
-| Kritikalität      | kritisch                        |
-| Recovery-Relevanz | kritisch                        |
-| Funktion          | zentrale Betriebsadministration |
-| Hauptzugang       | `JaitiNissi1968`                |
-| Root Zugriff      | via sudo                        |
-| SSH Root Login    | deaktiviert                     |
+Hauptzugang:
 
-### Kritische Kopplungen
+```text
+JaitiNissi1968
+```
+
+Root Login:
+
+```text
+SSH Root deaktiviert
+```
 
 Nicht gleichzeitig ändern:
 
-- SSH Zugang
-- WireGuard
-- Fritz!Box Zugriff
+```text
+SSH Zugang
+WireGuard
+Fritz!Box
+```
 
 ---
 
 ## GitHub
 
-| Bereich           | Bewertung                                 |
-| ----------------- | ----------------------------------------- |
-| Kritikalität      | hoch                                      |
-| Recovery-Relevanz | hoch                                      |
-| Funktion          | Source of Truth                           |
-| Risiken           | Verlust Infrastruktur-Dokumentation       |
-| Aktueller Status  | Repository Bestandteil der Recovery-Kette |
+Funktion:
 
-### Kritische Kopplungen
+```text
+Infrastruktur Source of Truth
+```
 
 Nicht gleichzeitig ändern:
 
-- Passwort
-- 2FA
-- Recoverycodes
+```text
+Passwort
+MFA
+Recoverycodes
+```
 
 ---
 
 ## Security-Artefakte / Syncthing
 
-| Bereich           | Bewertung                          |
-| ----------------- | ---------------------------------- |
-| Kritikalität      | hoch                               |
-| Recovery-Relevanz | hoch                               |
-| Funktion          | Credential- und Recovery-Artefakte |
-| Primärquelle      | Laptop                             |
-| Replik            | NAS                                |
-| Synchronisation   | Syncthing                          |
-
-### Recovery-Pfade
-
-Primär:
+Primärquelle:
 
 ```text
 C:\Users\Joerg\Documents\Security
@@ -154,20 +181,30 @@ NAS-Replik:
 /volume1/home/JaitiNissi1968/Security
 ```
 
-### Kritische Kopplungen
+Architektur:
 
-Nicht gleichzeitig ändern:
+```text
+Laptop
+⇅
+Syncthing
+⇅
+NAS
+```
 
-- KeePassXC Struktur
-- Syncthing Konfiguration
-- Recovery-Dokumentation
-
-### Grundsatz
+Grundsatz:
 
 ```text
 Laptop = Source of Truth
 NAS = Replik
-Desktop = zusätzlicher Client
+Desktop = zusätzliche Recovery-Ebene
+```
+
+Nicht gleichzeitig ändern:
+
+```text
+KeePass Struktur
+Syncthing Konfiguration
+Recovery-Dokumentation
 ```
 
 ---
@@ -176,253 +213,329 @@ Desktop = zusätzlicher Client
 
 ## Docker / Compose
 
-| Bereich           | Bewertung         |
-| ----------------- | ----------------- |
-| Kritikalität      | hoch              |
-| Recovery-Relevanz | hoch              |
-| Funktion          | Runtime-Steuerung |
-| Abhängigkeiten    | NAS, Storage      |
-| Risiken           | Runtime-Ausfall   |
+Recovery-relevante Komponenten:
 
-### Recovery-Relevante Komponenten
-
-- Compose-Dateien
-- Runtime-Secrets
-- Volumes
-- Netzwerke
-- Portainer
+```text
+Compose-Dateien
+Volumes
+Netzwerke
+Runtime-Secrets
+```
 
 ---
 
 ## Portainer
 
-| Bereich           | Bewertung                              |
-| ----------------- | -------------------------------------- |
-| Kritikalität      | hoch                                   |
-| Recovery-Relevanz | mittel                                 |
-| Funktion          | Runtime-Verwaltung                     |
-| Risiken           | Verlust komfortabler Runtime-Steuerung |
+Funktion:
 
-### Hinweis
+```text
+Runtime-Verwaltung
+```
 
-Portainer ist operativ wichtig, aber nicht primärer Recoverypfad.
+Bewertung:
 
-Compose Source of Truth bleibt wichtiger.
+```text
+operativ wichtig
+nicht primärer Recoverypfad
+```
 
 ---
 
 ## Uptime Kuma
 
-| Bereich                 | Bewertung             |
-| ----------------------- | --------------------- |
-| Kritikalität            | hoch                  |
-| Recovery-Relevanz       | hoch                  |
-| Funktion                | Monitoring / Alerting |
-| Recoverykritische Datei | `kuma.db`             |
+Recovery-kritisch:
 
-### Risiken
+```text
+kuma.db
+```
 
-Verlust von:
+Verlust bedeutet:
 
-- Monitoring-Konfiguration
-- Telegram Alerts
-- Runtime-Überwachung
+```text
+Monitoringverlust
+Alertingverlust
+```
 
 ---
 
 # MariaDB Recovery
 
-## MariaDB Root
+## Break-Glass
 
-| Bereich           | Bewertung                |
-| ----------------- | ------------------------ |
-| Kritikalität      | kritisch                 |
-| Recovery-Relevanz | kritisch                 |
-| Funktion          | DB Break-Glass           |
-| Risiken           | vollständiger DB-Lockout |
+### root@localhost
 
-### Kritische Kopplungen
+Funktion:
+
+```text
+letzter Recovery-Zugang
+```
+
+Eigenschaften:
+
+```text
+lokal
+vollständige Rechte
+```
+
+Wichtige Änderung:
+
+```text
+root@% entfernt
+```
+
+---
+
+## Primärer DBA
+
+### JoergTitz
+
+Funktion:
+
+```text
+tägliche Administration
+```
+
+Rolle:
+
+```text
+role_emc_admin
+```
 
 Nicht gleichzeitig ändern:
 
-- MariaDB Root
-- Backend PROD Runtime
-- Access PROD Runtime
+```text
+JoergTitz
+root@localhost
+KeePass
+```
 
 ---
 
-## Persönlicher Admin User
+## phpMyAdmin Administration
 
-| Bereich           | Bewertung               |
-| ----------------- | ----------------------- |
-| User              | `JoergTitz`             |
-| Kritikalität      | kritisch                |
-| Recovery-Relevanz | hoch                    |
-| Funktion          | tägliche Administration |
+### emc_phpmyadmin_admin
 
-### Risiken
+Funktion:
 
-- Verlust regulärer Administration
-- erschwerte Recovery
-- Abhängigkeit von Root
+```text
+GUI Administration
+```
+
+Grund:
+
+```text
+phpMyAdmin Rollen-Inkompatibilität
+```
 
 ---
 
-# Mitglieder Domäne
+# Mitglieder-Domäne
 
-## Backend PROD
+## Backend DEV
 
-| Bereich           | Bewertung          |
-| ----------------- | ------------------ |
-| Kritikalität      | kritisch           |
-| Recovery-Relevanz | hoch               |
-| Datenbank         | `emc_mitglieder`   |
-| Runtime User      | `emc_backend_prod` |
+Benutzer:
 
-### Abhängigkeiten
+```text
+emc_mitglieder_dev_rw
+```
+
+Abhängigkeit:
 
 ```text
 Compose
 → Runtime Secret
-→ DB User
 → MariaDB
-→ Docker Runtime
 ```
 
-### Kritische Kopplungen
+---
 
-Nicht gleichzeitig ändern:
+## Backend PROD
 
-- DB Passwort
-- Compose Runtime
-- Runtime Secret Struktur
+Benutzer:
+
+```text
+emc_mitglieder_prod_rw
+```
+
+Abhängigkeit:
+
+```text
+Compose
+→ Runtime Secret
+→ MariaDB
+```
+
+---
+
+## Access Mitglieder DEV
+
+Benutzer:
+
+```text
+emc_access_mitglieder_dev_rw
+```
+
+Abhängigkeit:
+
+```text
+dbconfig.ini
+→ ODBC
+→ MariaDB
+```
 
 ---
 
 ## Access Mitglieder PROD
 
-| Bereich           | Bewertung           |
-| ----------------- | ------------------- |
-| Kritikalität      | kritisch            |
-| Recovery-Relevanz | hoch                |
-| Runtime           | Access              |
-| DB User           | `emc_mitglieder_rw` |
+Benutzer:
 
-### Abhängigkeiten
+```text
+emc_access_mitglieder_prod_rw
+```
+
+Abhängigkeit:
 
 ```text
 dbconfig.ini
 → ODBC
-→ Netzwerk
 → MariaDB
 ```
 
-### Risiken
+---
 
-- sofortiger Runtime-Ausfall
-- Access Loginfehler
-- Produktivstillstand
+## Access Mitglieder PROD RO
+
+Benutzer:
+
+```text
+emc_access_mitglieder_prod_ro
+```
+
+Verwendung:
+
+```text
+Read Only Auswertungen
+```
 
 ---
 
 # Finanzdomäne
 
-## Access Finanzen PROD
+## Access Finanzen DEV
 
-| Bereich           | Bewertung         |
-| ----------------- | ----------------- |
-| Kritikalität      | kritisch          |
-| Recovery-Relevanz | hoch              |
-| Runtime           | Access            |
-| DB User           | `emc_finanzen_rw` |
+Benutzer:
 
-### Abhängigkeiten
+```text
+emc_access_finanzen_dev_rw
+```
+
+Abhängigkeit:
 
 ```text
 dbconfig.ini
 → ODBC
-→ Netzwerk
 → MariaDB
 ```
 
-### Risiken
+---
 
-- produktiver Finanzausfall
-- Access Runtimefehler
-- DB Loginprobleme
+## Access Finanzen PROD
+
+Benutzer:
+
+```text
+emc_access_finanzen_prod_rw
+```
+
+Abhängigkeit:
+
+```text
+dbconfig.ini
+→ ODBC
+→ MariaDB
+```
 
 ---
 
 # Recovery-Reihenfolge
 
-## Empfohlene Reihenfolge bei Komplettrecovery
+## 1 Netzwerk
 
-### 1. Netzwerk
-
-- Fritz!Box
-- Internet
-- WireGuard
-
----
-
-### 2. Security-Artefakte
-
-- KeePassXC
-- Security-Verzeichnis
-- Syncthing
-- Recovery-Dokumentation
+```text
+Fritz!Box
+Internet
+WireGuard
+```
 
 ---
 
-### 3. NAS
+## 2 Security
 
-- SSH
-- sudo
-- Storage
-- Docker Runtime
-
----
-
-### 4. Datenbank
-
-- MariaDB
-- DB Runtime
-- Restorefähigkeit
+```text
+KeePass
+Security-Verzeichnis
+Syncthing
+Recovery-Dokumentation
+```
 
 ---
 
-### 5. Runtime
+## 3 NAS
 
-- Backend
-- Frontend
-- Access
-- Monitoring
+```text
+SSH
+sudo
+Storage
+Docker
+```
 
 ---
 
-### 6. Komfortsysteme
+## 4 Datenbank
 
-- Portainer
-- Uptime Kuma
-- Telegram Alerts
+```text
+MariaDB
+Backup
+Restore
+```
+
+---
+
+## 5 Anwendungen
+
+```text
+Backend
+Frontend
+Access
+Monitoring
+```
+
+---
+
+## 6 Komfortsysteme
+
+```text
+Portainer
+Uptime Kuma
+```
 
 ---
 
 # Single Points of Failure
 
-| Bereich             | SPOF             |
-| ------------------- | ---------------- |
-| NAS Administration  | `JaitiNissi1968` |
-| DB Recovery         | MariaDB Root     |
-| Netzwerk Recovery   | Fritz!Box        |
-| Remote Recovery     | WireGuard        |
-| Monitoring Recovery | `kuma.db`        |
-| Governance          | GitHub Zugriff   |
-| Credential Recovery | KeePassXC        |
+| Bereich             | SPOF           |
+| ------------------- | -------------- |
+| NAS Administration  | JaitiNissi1968 |
+| DB Recovery         | root@localhost |
+| Netzwerk Recovery   | Fritz!Box      |
+| Remote Recovery     | WireGuard      |
+| Monitoring Recovery | kuma.db        |
+| Governance          | GitHub         |
+| Credential Recovery | KeePass        |
 
 ---
 
-# Wichtige Betriebsregeln
+# Betriebsregeln
 
 ## Keine Blindrotation
 
@@ -434,24 +547,26 @@ Credentials niemals ohne Recoverybewertung ändern.
 
 Besonders kritisch:
 
-- Fritz!Box
-- WireGuard
-- NAS SSH
-- MariaDB Root
-- Backend PROD
-- Access PROD
-- KeePassXC Struktur
+```text
+Fritz!Box
+WireGuard
+NAS SSH
+root@localhost
+JoergTitz
+KeePass
+```
 
 ---
 
 ## Recovery vor Cleanup
 
-Historische Runtime- und Compose-Strukturen erst entfernen, wenn:
+Altstrukturen erst entfernen wenn:
 
-- Recovery dokumentiert
-- Runtime validiert
-- Secret-Struktur standardisiert
-- Rollback möglich
+```text
+Recovery dokumentiert
+Runtime validiert
+Rollback möglich
+```
 
 ist.
 
@@ -461,26 +576,22 @@ ist.
 
 Die EMC Infrastruktur besitzt:
 
-- getestete Restorefähigkeit
 - dokumentierte Recoverypfade
-- Security-Artefakt-Replikation
-- strukturierte Runtime
-- kontrollierte Betriebsarchitektur
-- dokumentierte Break-Glass-Prozesse
+- Break-Glass-Modell
+- Rollenmodell
+- Credential Source of Truth
+- Security-Replikation
+- getestete Restorefähigkeit
+- standardisierte Betriebsarchitektur
 
-Wesentliche Risiken bestehen aktuell primär in:
-
-- zentralisierten Recovery-Abhängigkeiten
-- verbleibenden Single Points of Failure
-- historisch gewachsenen Runtime-Strukturen
-
-Die weitere Härtung erfolgt evolutionär und recovery-sicher.
+Die weitere Härtung erfolgt kontrolliert und recovery-sicher.
 
 ---
 
 # Änderungslog
 
-| Datum      | Änderung                                                                            |
-| ---------- | ----------------------------------------------------------------------------------- |
-| 2026-05-26 | Initiale Recovery-Dependency-Dokumentation                                          |
-| 2026-05-30 | Phase-8-Erweiterung: Security-Artefakte und Syncthing in Recovery-Kette aufgenommen |
+| Datum      | Änderung                                                         |
+| ---------- | ---------------------------------------------------------------- |
+| 2026-05-26 | Initiale Version                                                 |
+| 2026-05-30 | Syncthing und Security-Artefakte ergänzt                         |
+| 2026-06-01 | Rollenmodell, DBA-Modell und Phase-9-Recoveryarchitektur ergänzt |

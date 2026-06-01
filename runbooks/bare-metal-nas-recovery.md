@@ -1,6 +1,6 @@
 # Bare Metal NAS Recovery Runbook
 
-Status: Phase 8 Security-Verzeichnis Synchronisation
+Status: Phase 9 Datenbank Rollenmodell / Access-Härtung
 
 ## Zweck
 
@@ -25,7 +25,7 @@ Benötigt:
 - Break-Glass Dokumentation
 - externe Backups
 - GitHub Zugriff
-- KeePassXC Zugriff
+- KeePass Zugriff
 - Zugriff auf Security-Verzeichnis
 
 ---
@@ -52,7 +52,7 @@ C:\Users\Joerg\Documents\Security
 
 Falls verfügbar:
 
-- KeePassXC Datenbank
+- KeePass Datenbank
 - Fritz!Box Backup
 - Recovery-Dokumentation
 - Credential-Dokumentation
@@ -67,9 +67,18 @@ Laptop = Source of Truth
 
 ### 3. Credentials herstellen
 
-- KeePassXC öffnen
+- KeePass öffnen
 - Break-Glass prüfen
 - Admin-Zugänge validieren
+
+Mindestens prüfen:
+
+```text
+root@localhost
+JoergTitz
+emc_phpmyadmin_admin
+JaitiNissi1968
+```
 
 ---
 
@@ -120,7 +129,7 @@ aus:
 
 - Backup
 - dokumentierter Recoveryquelle
-- KeePassXC
+- KeePass
 
 ---
 
@@ -176,6 +185,35 @@ Falls Daten verloren:
 - Restore durchführen
 - Integrität prüfen
 
+Nach Restore prüfen:
+
+```text
+Runtime User
+Access User
+Rollenmodell
+Break-Glass Benutzer
+```
+
+Insbesondere validieren:
+
+```text
+emc_mitglieder_dev_rw
+emc_mitglieder_prod_rw
+emc_backend_test_rw
+emc_backup
+
+emc_access_mitglieder_dev_rw
+emc_access_mitglieder_prod_rw
+emc_access_mitglieder_prod_ro
+
+emc_access_finanzen_dev_rw
+emc_access_finanzen_prod_rw
+
+JoergTitz
+emc_phpmyadmin_admin
+root@localhost
+```
+
 ---
 
 ### 10. Access Restore
@@ -191,6 +229,14 @@ Prüfen:
 - Finanzen PROD
 
 Starttest durchführen.
+
+Besonders prüfen:
+
+```text
+dbconfig.ini
+BuildMariaDbConnectString()
+automatischer Relink
+```
 
 ---
 
@@ -210,6 +256,7 @@ Prüfen:
 Pflichtprüfungen:
 
 - MariaDB
+- Rollenmodell
 - Backend DEV
 - Backend PROD
 - Frontend DEV
@@ -218,6 +265,9 @@ Pflichtprüfungen:
 - Backup
 - Monitoring
 - Syncthing
+- Access Benutzer
+- DBA Benutzer
+- Break-Glass Benutzer
 
 ---
 
@@ -241,9 +291,14 @@ Syncthing
 Zusätzlich:
 
 ```text
-KeePassXC verfügbar
+KeePass verfügbar
 Security-Verzeichnis repliziert
 Recovery-Dokumentation vorhanden
+
+Rollenmodell funktionsfähig
+Access Benutzer funktionsfähig
+JoergTitz funktionsfähig
+root@localhost funktionsfähig
 ```
 
 ---
@@ -255,3 +310,12 @@ Recovery-Dokumentation vorhanden
 - Datenbank Restore Runbook
 - Compose Restore Dokumentation
 - Credential Inventory
+
+---
+
+## Änderungslog
+
+| Datum      | Änderung                                                                                          |
+| ---------- | ------------------------------------------------------------------------------------------------- |
+| 2026-05-30 | Initiale Version                                                                                  |
+| 2026-06-01 | Phase-9-Erweiterung: Rollenmodell, DBA-Modell, Access-Härtung und Break-Glass-Validierung ergänzt |

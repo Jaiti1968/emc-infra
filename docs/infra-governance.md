@@ -11,24 +11,35 @@ Es gilt für:
 - Git-basierte Infrastrukturverwaltung
 - Portainer-Nutzung
 - operative Infrastrukturänderungen
+- Credential Management
+- Recovery-Strukturen
 
 ---
 
 ## Source of Truth
 
-Verbindlicher Standard:
+Verbindliche Source-of-Truth-Struktur:
 
 ```text
-GitHub Repository emc-infra
-```
+GitHub emc-infra
+    =
+Infrastruktur Source of Truth
 
-ist die primäre Source of Truth.
+KeePass
+    =
+Credential Source of Truth
+
+Laptop Security-Verzeichnis
+    =
+Security-Artefakte Source of Truth
+```
 
 Nicht Source of Truth:
 
 - Portainer-interne Stack-Konfiguration
 - spontane UI-Konfigurationen
 - historische Compose-Dateien
+- NAS-Replik der Security-Struktur
 - undokumentierte lokale Änderungen
 
 ---
@@ -53,15 +64,15 @@ Deployment
 
 ### Rollen
 
-**GitHub**
+### GitHub
 
 Architektonisch verbindlicher Sollstand.
 
-**Windows-Arbeitsplatz**
+### Windows-Arbeitsplatz
 
 Authoring, Änderung, Branching, Commit, Push.
 
-**NAS**
+### NAS
 
 Operative Deploy-Kopie:
 
@@ -69,7 +80,7 @@ Operative Deploy-Kopie:
 /volume1/docker/compose
 ```
 
-**Portainer**
+### Portainer
 
 Deploymenthilfe, nicht Primärquelle.
 
@@ -124,7 +135,7 @@ Nicht erlaubt:
 - Credentials in Markdown-Dokumentation
 - Secrets in Commit-History
 
-Aktuell erlaubter Zwischenstandard:
+Aktuell erlaubter Standard:
 
 lokale `.env` Dateien außerhalb Git.
 
@@ -137,7 +148,39 @@ compose/emc-mitglieder-backend-dev/.env
 compose/emc-mitglieder-backend-prod/.env
 ```
 
-Docker-Secrets-Migration ist spätere Phase.
+Docker-Secrets-Migration bleibt ein mögliches Zukunftsthema.
+
+---
+
+## Credential Governance
+
+Verbindlicher Standard:
+
+```text
+KeePass
+=
+Credential Source of Truth
+```
+
+Grundsätze:
+
+- Zugangsdaten werden ausschließlich in KeePass gepflegt.
+- Runtime-Credentials werden aus KeePass in produktive `.env` Dateien übertragen.
+- Zugangsdaten werden nicht in Git gespeichert.
+- Zugangsdaten werden nicht in Dokumentationen gespeichert.
+- Credential-Rotationen sind zu dokumentieren.
+- KeePass ist Bestandteil des Recovery-Konzepts.
+
+Betriebsrollen:
+
+```text
+Runtime
+Access
+Administration
+Recovery
+```
+
+werden getrennt verwaltet.
 
 ---
 
@@ -151,11 +194,11 @@ master
 
 ### Änderungsmodell
 
-**Kleine Infrastrukturänderungen**
+### Kleine Infrastrukturänderungen
 
 Direkt auf `master` möglich.
 
-**Größere Änderungen**
+### Größere Änderungen
 
 Feature-Branch empfohlen.
 
@@ -233,11 +276,32 @@ private Home-Verzeichnisse als dauerhafte Produktivbasis.
 
 Historische Altstrukturen können temporär bestehen, bis kontrollierte Migration erfolgt.
 
-Bewusste Ausnahme:
+---
 
+### Bewusste Ausnahme
+
+```text
 /volume1/home/JaitiNissi1968/Security
+```
 
 Dieses Verzeichnis ist keine Docker-Runtime-Struktur, sondern NAS-Replik der lokalen Security-Struktur.
+
+Synchronisation erfolgt über:
+
+```text
+Syncthing
+```
+
+Architektur:
+
+```text
+Laptop
+⇅
+Syncthing
+⇅
+NAS
+```
+
 Laptop bleibt Source of Truth.
 
 ---
@@ -253,6 +317,10 @@ Dokumentationsrelevant:
 - Backup-Änderungen
 - Recovery-Prozesse
 - Credential-Standards
+- Rollenmodell-Änderungen
+- Benutzer- und Rechtekonzepte
+- Security-Artefakte
+- Recovery-Zugänge
 - Betriebsentscheidungen
 
 ---
@@ -273,4 +341,4 @@ Nachgelagerte Dokumentation ist Pflicht.
 
 ## Gültigkeit
 
-Dieses Dokument definiert den verbindlichen Governance-Standard für die EMC NAS-/Docker-Betriebsumgebung ab Phase 1 der Betriebsstandardisierung.
+Dieses Dokument definiert den verbindlichen Governance-Standard für die EMC NAS-/Docker-Betriebsumgebung nach Abschluss der Phasen 1–9 der EMC NAS Betriebsstandardisierung.
