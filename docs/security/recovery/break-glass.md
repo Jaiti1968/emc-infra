@@ -1,6 +1,6 @@
 # EMC NAS Betriebsstandardisierung – Break-Glass Dokument
 
-Status: Phase 9 abgeschlossen
+Status: Phase 9 abgeschlossen / Phase 8b nachgeführt
 Ablageziel: `emc-infra/docs/security/recovery/break-glass.md`
 
 Wichtig: Dieses Dokument enthält bewusst keine Klartextpasswörter.
@@ -9,7 +9,7 @@ Wichtig: Dieses Dokument enthält bewusst keine Klartextpasswörter.
 
 # Zweck
 
-Dieses Dokument beschreibt den Notfallzugriff auf die EMC NAS-, Docker-, Datenbank- und Access-Infrastruktur.
+Dieses Dokument beschreibt den Notfallzugriff auf die EMC NAS-, Docker-, Datenbank-, Security- und Access-Infrastruktur.
 
 Break-Glass bedeutet:
 
@@ -31,18 +31,18 @@ Break-Glass bedeutet:
 
 # Kritische Systeme
 
-| System              | Zweck                       | Kritikalität |
-| ------------------- | --------------------------- | -----------: |
-| UGREEN DH2300 NAS   | Docker Runtime / Daten      |     kritisch |
-| MariaDB             | Mitglieder- und Finanzdaten |     kritisch |
-| Access Master Share | Access Anwendungen          |     kritisch |
-| Fritz!Box           | Netzwerk / WireGuard        |     kritisch |
-| GitHub              | Infrastruktur-Recovery      |     kritisch |
-| Portainer           | Runtime-Verwaltung          |         hoch |
-| Uptime Kuma         | Monitoring                  |       mittel |
-| Syncthing           | Security-Replikation        |         hoch |
-| Windows Laptop      | Primärer Arbeitsplatz       |         hoch |
-| Windows Desktop     | Zusätzliche Recovery-Ebene  |     relevant |
+| System              | Zweck                                   | Kritikalität |
+| ------------------- | --------------------------------------- | -----------: |
+| UGREEN DH2300 NAS   | Docker Runtime / Daten                  |     kritisch |
+| MariaDB             | Mitglieder- und Finanzdaten             |     kritisch |
+| Access Master Share | Access Anwendungen                      |     kritisch |
+| Fritz!Box           | Netzwerk / WireGuard                    |     kritisch |
+| GitHub              | Infrastruktur-Recovery                  |     kritisch |
+| Portainer           | Runtime-Verwaltung                      |         hoch |
+| Uptime Kuma         | Monitoring                              |       mittel |
+| Syncthing           | Security-Replikation                    |         hoch |
+| Windows Laptop      | Primärer Arbeitsplatz / Source of Truth |         hoch |
+| Windows Desktop     | Recovery-Client                         |     relevant |
 
 ---
 
@@ -68,10 +68,22 @@ KeePass
 ## Security-Artefakte
 
 ```text
-C:\Users\Joerg\Documents\Security
+D:\Security
 ```
 
 Laptop bleibt führendes System.
+
+---
+
+## Security-Replikation
+
+```text
+Laptop (Source of Truth)
+        ⇅
+     Syncthing
+    ↙       ↘
+ NAS       Desktop
+```
 
 ---
 
@@ -81,10 +93,12 @@ Laptop bleibt führendes System.
 /volume1/home/JaitiNissi1968/Security
 ```
 
-Synchronisation:
+---
+
+## Desktop-Replik
 
 ```text
-Syncthing
+D:\Security
 ```
 
 ---
@@ -309,7 +323,7 @@ Reihenfolge:
 Primärquelle:
 
 ```text
-C:\Users\Joerg\Documents\Security
+D:\Security
 ```
 
 NAS-Replik:
@@ -318,12 +332,29 @@ NAS-Replik:
 /volume1/home/JaitiNissi1968/Security
 ```
 
+Desktop-Replik:
+
+```text
+D:\Security
+```
+
 Betriebsmodell:
 
 ```text
 Laptop = Source of Truth
-NAS = Replik
+NAS = Replik + Dateiversionierung
 Desktop = zusätzliche Recovery-Ebene
+```
+
+Recovery-Möglichkeiten:
+
+```text
+Laptop → NAS
+Laptop → Desktop
+NAS → Laptop
+Desktop → Laptop
+NAS → Desktop
+Desktop → NAS
 ```
 
 Grundsätze:
@@ -331,7 +362,9 @@ Grundsätze:
 - Laptop bleibt führend.
 - Syncthing ersetzt kein Backup.
 - NAS dient als zusätzliche Recovery-Ebene.
+- Desktop dient als zusätzliche Recovery-Ebene.
 - `.stversions` unterstützt Dateiwiederherstellung.
+- KeePass liegt redundant auf allen drei Systemen vor.
 
 ---
 
@@ -347,8 +380,10 @@ Grundsätze:
 
 # Änderungslog
 
-| Datum      | Änderung                                                                   |
-| ---------- | -------------------------------------------------------------------------- |
-| 2026-05-26 | Initiale Version Phase 2                                                   |
-| 2026-05-30 | Syncthing und Security-Replikation ergänzt                                 |
-| 2026-06-01 | Rollenmodell, DBA-Modell, phpMyAdmin-Admin und root@localhost aktualisiert |
+| Datum      | Änderung                                                                                                               |
+| ---------- | ---------------------------------------------------------------------------------------------------------------------- |
+| 2026-05-26 | Initiale Version Phase 2                                                                                               |
+| 2026-05-30 | Syncthing und Security-Replikation ergänzt                                                                             |
+| 2026-06-01 | Rollenmodell, DBA-Modell, phpMyAdmin-Admin und root@localhost aktualisiert                                             |
+| 2026-06-02 | Desktop-Recovery-Client ergänzt, Security Source of Truth nach D:\Security migriert, Recovery-Architektur aktualisiert |
+|            |                                                                                                                        |

@@ -1,6 +1,6 @@
 # EMC NAS Betriebsstandardisierung – Credential Inventory
 
-Status: Phase 9 abgeschlossen
+Status: Phase 9 abgeschlossen / Phase 8b nachgeführt
 Ablageziel: `emc-infra/docs/security/inventory/credential-inventory.md`
 
 Wichtig: Dieses Dokument enthält bewusst keine Klartextpasswörter.
@@ -25,6 +25,7 @@ Ziel ist schnelle Orientierung für Betrieb, Recovery und Break-Glass ohne Speic
 - Root-Zugänge sind Break-Glass-Zugänge.
 - Credential-Änderungen sind zu dokumentieren.
 - Credential-Rotationen sind in KeePass nachzuführen.
+- Einträge ohne Credential-Charakter werden nicht im KeePass gepflegt.
 
 ---
 
@@ -341,8 +342,10 @@ ohne manuelle Neuverknüpfung der Tabellen.
 Source of Truth:
 
 ```text
-C:\Users\Joerg\Documents\Security
+D:\Security
 ```
+
+auf dem Laptop.
 
 Struktur:
 
@@ -354,6 +357,8 @@ Security
 
 Laptop bleibt führendes System.
 
+Desktop und NAS sind Repliken.
+
 ---
 
 # Synchronisation
@@ -361,18 +366,90 @@ Laptop bleibt führendes System.
 Replikationsmodell:
 
 ```text
-Laptop
-⇅
-Syncthing
-⇅
-NAS
+Laptop (Source of Truth)
+        ⇅
+     Syncthing
+    ↙       ↘
+ NAS       Desktop
 ```
 
-NAS-Ziel:
+Pfade:
 
 ```text
+Laptop:
+D:\Security
+
+NAS:
 /volume1/home/JaitiNissi1968/Security
+
+Desktop:
+D:\Security
 ```
+
+Rollen:
+
+```text
+Laptop
+=
+führende Arbeitskopie
+
+NAS
+=
+Replik
++ Dateiversionierung
++ Recovery-Kopie
+
+Desktop
+=
+zusätzliche Replik
++ Recovery-Client
+```
+
+---
+
+# Syncthing GUI
+
+Die Syncthing-Weboberflächen werden ohne GUI-Authentifizierung betrieben.
+
+Zugriff Windows lokal:
+
+```text
+http://127.0.0.1:8384
+```
+
+NAS Zugriff im Heimnetz:
+
+```text
+http://<NAS-IP>:8384
+```
+
+Bewertung:
+
+```text
+Keine Syncthing-GUI-Credentials vorhanden.
+Keine KeePass-Einträge erforderlich.
+```
+
+Die früheren KeePass-Einträge wurden entfernt:
+
+```text
+Syncthing GUI (Laptop)
+Syncthing GUI (Desktop-Joerg2)
+Syncthing GUI (NAS)
+```
+
+Die Absicherung erfolgt über:
+
+```text
+Windows-Anmeldung
+NAS-Anmeldung
+Syncthing-Gerätezertifikate
+KeePass-Masterpasswort
+```
+
+Hinweis:
+
+Die NAS-GUI kann ohne Passwort eine Syncthing-Warnung anzeigen, da sie im Heimnetz erreichbar ist. Dies ist bewusst akzeptiert, solange kein externer Zugriff bzw. kein Portforwarding auf die Syncthing-GUI besteht.
 
 ---
 
@@ -390,9 +467,10 @@ NAS-Ziel:
 
 # Änderungslog
 
-| Datum      | Änderung                                                                   |
-| ---------- | -------------------------------------------------------------------------- |
-| 2026-05-26 | Initiale Version Phase 2                                                   |
-| 2026-05-29 | Secret Management und Runtime Credential Rotation                          |
-| 2026-05-30 | Lokale Security-Struktur und Syncthing ergänzt                             |
-| 2026-06-01 | Rollenmodell, Access-User, Break-Glass-Modell und phpMyAdmin-Admin ergänzt |
+| Datum      | Änderung                                                                                                         |
+| ---------- | ---------------------------------------------------------------------------------------------------------------- |
+| 2026-05-26 | Initiale Version Phase 2                                                                                         |
+| 2026-05-29 | Secret Management und Runtime Credential Rotation                                                                |
+| 2026-05-30 | Lokale Security-Struktur und Syncthing ergänzt                                                                   |
+| 2026-06-01 | Rollenmodell, Access-User, Break-Glass-Modell und phpMyAdmin-Admin ergänzt                                       |
+| 2026-06-02 | Desktop-Recovery-Client ergänzt, Security-Struktur nach D:\Security migriert, Syncthing GUI-Credentials entfernt |

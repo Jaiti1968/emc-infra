@@ -46,10 +46,22 @@ KeePass
 ## Security-Artefakte
 
 ```text
-C:\Users\Joerg\Documents\Security
+D:\Security
 ```
 
 Laptop bleibt führendes System.
+
+---
+
+## Security-Replikation
+
+```text
+Laptop (Source of Truth)
+        ⇅
+     Syncthing
+    ↙       ↘
+ NAS       Desktop
+```
 
 ---
 
@@ -172,7 +184,7 @@ Recoverycodes
 Primärquelle:
 
 ```text
-C:\Users\Joerg\Documents\Security
+D:\Security
 ```
 
 NAS-Replik:
@@ -181,22 +193,36 @@ NAS-Replik:
 /volume1/home/JaitiNissi1968/Security
 ```
 
+Desktop-Replik:
+
+```text
+D:\Security
+```
+
 Architektur:
 
 ```text
-Laptop
-⇅
-Syncthing
-⇅
-NAS
+Laptop (Source of Truth)
+        ⇅
+     Syncthing
+    ↙       ↘
+ NAS       Desktop
 ```
 
 Grundsatz:
 
 ```text
 Laptop = Source of Truth
-NAS = Replik
+NAS = Replik + Dateiversionierung
 Desktop = zusätzliche Recovery-Ebene
+```
+
+GUI-Betrieb:
+
+```text
+GUI-Authentifizierung deaktiviert
+127.0.0.1:8384 auf Windows
+NAS GUI im Heimnetz erreichbar
 ```
 
 Nicht gleichzeitig ändern:
@@ -583,6 +609,8 @@ Die EMC Infrastruktur besitzt:
 - Security-Replikation
 - getestete Restorefähigkeit
 - standardisierte Betriebsarchitektur
+- redundante Security-Artefakte auf Laptop, NAS und Desktop
+- Dateiversionierung über Syncthing `.stversions`
 
 Die weitere Härtung erfolgt kontrolliert und recovery-sicher.
 
@@ -590,8 +618,9 @@ Die weitere Härtung erfolgt kontrolliert und recovery-sicher.
 
 # Änderungslog
 
-| Datum      | Änderung                                                         |
-| ---------- | ---------------------------------------------------------------- |
-| 2026-05-26 | Initiale Version                                                 |
-| 2026-05-30 | Syncthing und Security-Artefakte ergänzt                         |
-| 2026-06-01 | Rollenmodell, DBA-Modell und Phase-9-Recoveryarchitektur ergänzt |
+| Datum      | Änderung                                                                                                                  |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------- |
+| 2026-05-26 | Initiale Version                                                                                                          |
+| 2026-05-30 | Syncthing und Security-Artefakte ergänzt                                                                                  |
+| 2026-06-01 | Rollenmodell, DBA-Modell und Phase-9-Recoveryarchitektur ergänzt                                                          |
+| 2026-06-02 | Desktop-Recovery-Client ergänzt, Security Source of Truth nach D:\Security migriert, Recovery-Abhängigkeiten aktualisiert |

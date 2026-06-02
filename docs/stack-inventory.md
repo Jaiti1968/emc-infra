@@ -278,7 +278,7 @@ compose/portainer/docker-compose.yml
 
 **Zweck**
 
-Security-Verzeichnis Synchronisation.
+Synchronisation der zentralen Security- und Recovery-Struktur.
 
 **Image**
 
@@ -314,12 +314,40 @@ syncthing
 compose/syncthing/docker-compose.yml
 ```
 
+**Architektur**
+
+```text
+Laptop (Source of Truth)
+        ⇅
+     Syncthing
+    ↙       ↘
+ NAS       Desktop
+```
+
+**Pfade**
+
+```text
+Laptop:
+D:\Security
+
+NAS:
+/volume1/home/JaitiNissi1968/Security
+
+Desktop:
+D:\Security
+```
+
 **Bemerkungen**
 
-- Laptop = Source of Truth
-- NAS = Replik
-- Syncthing ersetzt kein Backup
-- Versionierung über .stversions aktiv
+- Laptop ist die führende Arbeitskopie.
+- NAS dient als Replik und Recovery-Kopie.
+- Desktop dient als zusätzlicher Recovery-Client.
+- Dateiversionierung über `.stversions` aktiv.
+- GUI-Authentifizierung bewusst deaktiviert.
+- Windows-Clients starten Syncthing automatisch im Hintergrund.
+- Syncthing ersetzt kein Backup.
+- KeePass-Datenbank und Security-Artefakte werden über Syncthing repliziert.
+- Recovery-Konzept basiert auf Laptop, NAS und Desktop.
 
 ---
 
@@ -518,4 +546,4 @@ Nicht Bestandteil der bisherigen Phasen:
 - Monitoring Ausbau / echte Healthchecks
 - DB Naming Migration
 - Frontend PROD Image Migration
-- Altlasten-Endbereinigung
+- Syncthing-Hardening (optional)

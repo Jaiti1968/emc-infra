@@ -29,7 +29,7 @@ KeePass
     =
 Credential Source of Truth
 
-Laptop Security-Verzeichnis
+Laptop D:\Security
     =
 Security-Artefakte Source of Truth
 ```
@@ -40,6 +40,7 @@ Nicht Source of Truth:
 - spontane UI-Konfigurationen
 - historische Compose-Dateien
 - NAS-Replik der Security-Struktur
+- Desktop-Replik der Security-Struktur
 - undokumentierte lokale Änderungen
 
 ---
@@ -281,10 +282,17 @@ Historische Altstrukturen können temporär bestehen, bis kontrollierte Migratio
 ### Bewusste Ausnahme
 
 ```text
+Laptop:
+D:\Security
+
+NAS:
 /volume1/home/JaitiNissi1968/Security
+
+Desktop:
+D:\Security
 ```
 
-Dieses Verzeichnis ist keine Docker-Runtime-Struktur, sondern NAS-Replik der lokalen Security-Struktur.
+Diese Struktur ist keine Docker-Runtime-Struktur, sondern die zentrale Security- und Recovery-Struktur.
 
 Synchronisation erfolgt über:
 
@@ -295,14 +303,33 @@ Syncthing
 Architektur:
 
 ```text
-Laptop
-⇅
-Syncthing
-⇅
-NAS
+Laptop (Source of Truth)
+        ⇅
+     Syncthing
+    ↙       ↘
+ NAS       Desktop
 ```
 
-Laptop bleibt Source of Truth.
+Rollen:
+
+```text
+Laptop
+=
+führende Arbeitskopie
+
+NAS
+=
+Replik
++ Dateiversionierung
++ Recovery-Kopie
+
+Desktop
+=
+zusätzliche Replik
++ Recovery-Client
+```
+
+Änderungen an Security-Artefakten erfolgen grundsätzlich auf dem Laptop.
 
 ---
 
