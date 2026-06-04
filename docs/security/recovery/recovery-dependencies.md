@@ -1,5 +1,7 @@
 # Recovery Dependencies
 
+Status: Phase 11 abgeschlossen
+
 ## Zweck
 
 Dieses Dokument beschreibt die Recovery-Abhängigkeiten, Recovery-Ketten und kritischen Kopplungen der EMC Infrastruktur.
@@ -286,6 +288,44 @@ Alertingverlust
 
 # MariaDB Recovery
 
+## Datenbankstandard
+
+Seit Phase 11 gilt:
+
+```text
+<fachbereich>_<umgebung>
+```
+
+Produktive Datenbanken:
+
+```text
+emc_mitglieder_prod
+emc_finanzen_prod
+```
+
+Entwicklungsdatenbanken:
+
+```text
+emc_mitglieder_dev
+emc_finanzen_dev
+```
+
+Temporäre Legacy-Datenbanken:
+
+```text
+emc_mitglieder
+emc_finanzen
+```
+
+Status:
+
+```text
+nicht mehr produktiv genutzt
+temporäre Rollback-Sicherung
+```
+
+---
+
 ## Break-Glass
 
 ### root@localhost
@@ -365,6 +405,12 @@ Benutzer:
 emc_mitglieder_dev_rw
 ```
 
+Datenbank:
+
+```text
+emc_mitglieder_dev
+```
+
 Abhängigkeit:
 
 ```text
@@ -381,6 +427,12 @@ Benutzer:
 
 ```text
 emc_mitglieder_prod_rw
+```
+
+Datenbank:
+
+```text
+emc_mitglieder_prod
 ```
 
 Abhängigkeit:
@@ -401,6 +453,12 @@ Benutzer:
 emc_access_mitglieder_dev_rw
 ```
 
+Datenbank:
+
+```text
+emc_mitglieder_dev
+```
+
 Abhängigkeit:
 
 ```text
@@ -419,10 +477,16 @@ Benutzer:
 emc_access_mitglieder_prod_rw
 ```
 
+Datenbank:
+
+```text
+emc_mitglieder_prod
+```
+
 Abhängigkeit:
 
 ```text
-dbconfig.ini
+dbconfig_prod.ini
 → ODBC
 → MariaDB
 ```
@@ -435,6 +499,12 @@ Benutzer:
 
 ```text
 emc_access_mitglieder_prod_ro
+```
+
+Datenbank:
+
+```text
+emc_mitglieder_prod
 ```
 
 Verwendung:
@@ -455,6 +525,12 @@ Benutzer:
 emc_access_finanzen_dev_rw
 ```
 
+Datenbank:
+
+```text
+emc_finanzen_dev
+```
+
 Abhängigkeit:
 
 ```text
@@ -473,10 +549,16 @@ Benutzer:
 emc_access_finanzen_prod_rw
 ```
 
+Datenbank:
+
+```text
+emc_finanzen_prod
+```
+
 Abhängigkeit:
 
 ```text
-dbconfig.ini
+dbconfig_prod.ini
 → ODBC
 → MariaDB
 ```
@@ -523,6 +605,13 @@ Docker
 MariaDB
 Backup
 Restore
+```
+
+Restore-Ziele:
+
+```text
+emc_mitglieder_prod
+emc_finanzen_prod
 ```
 
 ---
@@ -596,6 +685,20 @@ Rollback möglich
 
 ist.
 
+Für die Phase-11-Legacy-Datenbanken zusätzlich:
+
+```text
+emc_mitglieder
+emc_finanzen
+```
+
+gilt:
+
+```text
+nicht löschen
+vor erfolgreichem Betriebs- und Backup-Nachweis
+```
+
 ---
 
 # Gesamtbewertung
@@ -609,6 +712,7 @@ Die EMC Infrastruktur besitzt:
 - Security-Replikation
 - getestete Restorefähigkeit
 - standardisierte Betriebsarchitektur
+- standardisierte Datenbank-Namenskonvention
 - redundante Security-Artefakte auf Laptop, NAS und Desktop
 - Dateiversionierung über Syncthing `.stversions`
 
@@ -618,9 +722,14 @@ Die weitere Härtung erfolgt kontrolliert und recovery-sicher.
 
 # Änderungslog
 
-| Datum      | Änderung                                                                                                                  |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------- |
-| 2026-05-26 | Initiale Version                                                                                                          |
-| 2026-05-30 | Syncthing und Security-Artefakte ergänzt                                                                                  |
-| 2026-06-01 | Rollenmodell, DBA-Modell und Phase-9-Recoveryarchitektur ergänzt                                                          |
-| 2026-06-02 | Desktop-Recovery-Client ergänzt, Security Source of Truth nach D:\Security migriert, Recovery-Abhängigkeiten aktualisiert |
+| Datum      | Änderung                                                                                                                                            |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-05-26 | Initiale Version                                                                                                                                    |
+| 2026-05-30 | Syncthing und Security-Artefakte ergänzt                                                                                                            |
+| 2026-06-01 | Rollenmodell, DBA-Modell und Phase-9-Recoveryarchitektur ergänzt                                                                                    |
+| 2026-06-02 | Desktop-Recovery-Client ergänzt, Security Source of Truth nach D:\Security migriert, Recovery-Abhängigkeiten aktualisiert                           |
+| 2026-06-04 | Datenbank Naming Migration auf \_prod dokumentiert, Access PROD auf dbconfig_prod.ini umgestellt, Legacy-Datenbanken als Rollback-Sicherung ergänzt |
+
+```
+
+```

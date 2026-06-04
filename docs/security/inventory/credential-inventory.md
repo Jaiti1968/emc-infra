@@ -1,6 +1,6 @@
 # EMC NAS Betriebsstandardisierung – Credential Inventory
 
-Status: Phase 10 abgeschlossen
+Status: Phase 11 abgeschlossen
 Ablageziel: `emc-infra/docs/security/inventory/credential-inventory.md`
 
 Wichtig: Dieses Dokument enthält bewusst keine Klartextpasswörter.
@@ -169,6 +169,44 @@ Anwendungen
 
 ---
 
+# Datenbank Naming Standard
+
+Seit Phase 11 gilt verbindlich:
+
+```text
+<fachbereich>_<umgebung>
+```
+
+Produktiv:
+
+```text
+emc_mitglieder_prod
+emc_finanzen_prod
+```
+
+Entwicklung:
+
+```text
+emc_mitglieder_dev
+emc_finanzen_dev
+```
+
+Temporäre Legacy-Datenbanken:
+
+```text
+emc_mitglieder
+emc_finanzen
+```
+
+Status:
+
+```text
+nicht mehr produktiv genutzt
+temporäre Rollback-Sicherung
+```
+
+---
+
 # Runtime Benutzer
 
 ## Mitgliederverwaltung
@@ -185,6 +223,12 @@ Verwendung:
 Backend DEV Runtime
 ```
 
+Datenbank:
+
+```text
+emc_mitglieder_dev
+```
+
 ---
 
 ### PROD
@@ -197,6 +241,12 @@ Verwendung:
 
 ```text
 Backend PROD Runtime
+```
+
+Datenbank:
+
+```text
+emc_mitglieder_prod
 ```
 
 ---
@@ -304,6 +354,12 @@ Verwendung:
 Access Mitglieder DEV
 ```
 
+Datenbank:
+
+```text
+emc_mitglieder_dev
+```
+
 ---
 
 ## Mitglieder PROD RW
@@ -316,6 +372,12 @@ Verwendung:
 
 ```text
 Access Mitglieder PROD
+```
+
+Datenbank:
+
+```text
+emc_mitglieder_prod
 ```
 
 ---
@@ -332,6 +394,12 @@ Verwendung:
 Read-Only Auswertungen
 ```
 
+Datenbank:
+
+```text
+emc_mitglieder_prod
+```
+
 ---
 
 ## Finanzen DEV
@@ -344,6 +412,12 @@ Verwendung:
 
 ```text
 Access Finanzen DEV
+```
+
+Datenbank:
+
+```text
+emc_finanzen_dev
 ```
 
 ---
@@ -360,6 +434,12 @@ Verwendung:
 Access Finanzen PROD
 ```
 
+Datenbank:
+
+```text
+emc_finanzen_prod
+```
+
 ---
 
 # Access Recovery
@@ -373,7 +453,11 @@ DSN-less Betrieb
 Konfiguration:
 
 ```text
+DEV:
 dbconfig.ini
+
+PROD:
+dbconfig_prod.ini
 ```
 
 Architektur:
@@ -391,6 +475,20 @@ Credential-Rotation
 ```
 
 ohne manuelle Neuverknüpfung der Tabellen.
+
+## NAS Source of Truth
+
+Mitglieder PROD:
+
+```text
+/volume1/apps/access/emc_mitglieder/prod/dbconfig_prod.ini
+```
+
+Finanzen PROD:
+
+```text
+/volume1/apps/access/emc_finanzen/prod/dbconfig_prod.ini
+```
 
 ---
 
@@ -549,11 +647,16 @@ zu dokumentieren.
 
 # Änderungslog
 
-| Datum      | Änderung                                                                                                         |
-| ---------- | ---------------------------------------------------------------------------------------------------------------- |
-| 2026-05-26 | Initiale Version Phase 2                                                                                         |
-| 2026-05-29 | Secret Management und Runtime Credential Rotation                                                                |
-| 2026-05-30 | Lokale Security-Struktur und Syncthing ergänzt                                                                   |
-| 2026-06-01 | Rollenmodell, Access-User, Break-Glass-Modell und phpMyAdmin-Admin ergänzt                                       |
-| 2026-06-02 | Desktop-Recovery-Client ergänzt, Security-Struktur nach D:\Security migriert, Syncthing GUI-Credentials entfernt |
-| 2026-06-03 | Monitoring-Benutzer emc_monitoring ergänzt, Monitoring Credential Governance eingeführt                          |
+| Datum      | Änderung                                                                                                                |
+| ---------- | ----------------------------------------------------------------------------------------------------------------------- |
+| 2026-05-26 | Initiale Version Phase 2                                                                                                |
+| 2026-05-29 | Secret Management und Runtime Credential Rotation                                                                       |
+| 2026-05-30 | Lokale Security-Struktur und Syncthing ergänzt                                                                          |
+| 2026-06-01 | Rollenmodell, Access-User, Break-Glass-Modell und phpMyAdmin-Admin ergänzt                                              |
+| 2026-06-02 | Desktop-Recovery-Client ergänzt, Security-Struktur nach D:\Security migriert, Syncthing GUI-Credentials entfernt        |
+| 2026-06-03 | Monitoring-Benutzer emc_monitoring ergänzt, Monitoring Credential Governance eingeführt                                 |
+| 2026-06-04 | Datenbank Naming Migration auf \_prod abgeschlossen, Runtime-, Access-, Backup- und Monitoring-Zuordnungen aktualisiert |
+
+```
+
+```

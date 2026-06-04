@@ -1,6 +1,6 @@
 # Bare Metal NAS Recovery Runbook
 
-Status: Phase 9 Datenbank Rollenmodell / Access-Härtung
+Status: Phase 11 abgeschlossen
 
 ## Zweck
 
@@ -47,7 +47,7 @@ Benötigt:
 Primärquelle:
 
 ```text
-C:\Users\Joerg\Documents\Security
+D:\Security
 ```
 
 Falls verfügbar:
@@ -185,6 +185,42 @@ Falls Daten verloren:
 - Restore durchführen
 - Integrität prüfen
 
+## Datenbankstandard
+
+Seit Phase 11 gilt:
+
+```text
+<fachbereich>_<umgebung>
+```
+
+Produktive Datenbanken:
+
+```text
+emc_mitglieder_prod
+emc_finanzen_prod
+```
+
+Entwicklungsdatenbanken:
+
+```text
+emc_mitglieder_dev
+emc_finanzen_dev
+```
+
+Temporäre Legacy-Datenbanken:
+
+```text
+emc_mitglieder
+emc_finanzen
+```
+
+Status:
+
+```text
+temporäre Rollback-Sicherung
+nicht produktiv
+```
+
 Nach Restore prüfen:
 
 ```text
@@ -234,8 +270,16 @@ Besonders prüfen:
 
 ```text
 dbconfig.ini
+dbconfig_prod.ini
 BuildMariaDbConnectString()
 automatischer Relink
+```
+
+Produktive NAS-Konfiguration:
+
+```text
+/volume1/apps/access/emc_mitglieder/prod/dbconfig_prod.ini
+/volume1/apps/access/emc_finanzen/prod/dbconfig_prod.ini
 ```
 
 ---
@@ -248,6 +292,13 @@ Prüfen:
 - Telegram Alerts
 - Healthchecks
 - Backup Monitoring
+
+Insbesondere:
+
+```text
+DATA MariaDB Login
+DATA DB Backup Healthcheck
+```
 
 ---
 
@@ -301,6 +352,15 @@ JoergTitz funktionsfähig
 root@localhost funktionsfähig
 ```
 
+Produktive Datenbanken:
+
+```text
+emc_mitglieder_prod
+emc_finanzen_prod
+```
+
+müssen vollständig funktionsfähig sein.
+
 ---
 
 ## Referenzen
@@ -315,7 +375,12 @@ root@localhost funktionsfähig
 
 ## Änderungslog
 
-| Datum      | Änderung                                                                                          |
-| ---------- | ------------------------------------------------------------------------------------------------- |
-| 2026-05-30 | Initiale Version                                                                                  |
-| 2026-06-01 | Phase-9-Erweiterung: Rollenmodell, DBA-Modell, Access-Härtung und Break-Glass-Validierung ergänzt |
+| Datum      | Änderung                                                                                                                       |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| 2026-05-30 | Initiale Version                                                                                                               |
+| 2026-06-01 | Phase-9-Erweiterung: Rollenmodell, DBA-Modell, Access-Härtung und Break-Glass-Validierung ergänzt                              |
+| 2026-06-04 | Phase-11-Erweiterung: Datenbank Naming Migration, Access-Konfigurationsstandard und Recovery-Zielsysteme auf \_prod umgestellt |
+
+```
+
+```

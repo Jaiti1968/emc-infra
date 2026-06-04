@@ -1,6 +1,6 @@
 # EMC NAS Betriebsstandardisierung – Break-Glass Dokument
 
-Status: Phase 9 abgeschlossen / Phase 8b nachgeführt
+Status: Phase 11 abgeschlossen
 Ablageziel: `emc-infra/docs/security/recovery/break-glass.md`
 
 Wichtig: Dieses Dokument enthält bewusst keine Klartextpasswörter.
@@ -154,6 +154,44 @@ D:\Chor\Access\emc_mitglieder\prod
 
 D:\Chor\Access\emc_finanzen\dev
 D:\Chor\Access\emc_finanzen\prod
+```
+
+---
+
+# Datenbankstandard
+
+Seit Phase 11 gilt verbindlich:
+
+```text
+<fachbereich>_<umgebung>
+```
+
+Produktive Datenbanken:
+
+```text
+emc_mitglieder_prod
+emc_finanzen_prod
+```
+
+Entwicklungsdatenbanken:
+
+```text
+emc_mitglieder_dev
+emc_finanzen_dev
+```
+
+Temporäre Legacy-Datenbanken:
+
+```text
+emc_mitglieder
+emc_finanzen
+```
+
+Status:
+
+```text
+nicht mehr produktiv genutzt
+temporäre Rollback-Sicherung
 ```
 
 ---
@@ -318,6 +356,35 @@ Reihenfolge:
 
 ---
 
+# Datenbank-Restore Hinweise
+
+Produktive Ziel-Datenbanken:
+
+```text
+emc_mitglieder_prod
+emc_finanzen_prod
+```
+
+Entwicklungsdatenbanken:
+
+```text
+emc_mitglieder_dev
+emc_finanzen_dev
+```
+
+Temporäre Legacy-Datenbanken:
+
+```text
+emc_mitglieder
+emc_finanzen
+```
+
+Diese dienen aktuell ausschließlich als Rollback-Sicherung der Phase-11-Migration.
+
+Vor Entfernung der Legacy-Datenbanken muss mindestens ein vollständiger erfolgreicher Backup- und Betriebszyklus verifiziert sein.
+
+---
+
 # Recovery der Security-Artefakte
 
 Primärquelle:
@@ -386,4 +453,8 @@ Grundsätze:
 | 2026-05-30 | Syncthing und Security-Replikation ergänzt                                                                             |
 | 2026-06-01 | Rollenmodell, DBA-Modell, phpMyAdmin-Admin und root@localhost aktualisiert                                             |
 | 2026-06-02 | Desktop-Recovery-Client ergänzt, Security Source of Truth nach D:\Security migriert, Recovery-Architektur aktualisiert |
-|            |                                                                                                                        |
+| 2026-06-04 | Datenbank Naming Migration auf \_prod dokumentiert, produktive Datenbanknamen und Rollback-Sicherung ergänzt           |
+
+```
+
+```

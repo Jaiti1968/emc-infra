@@ -1,7 +1,7 @@
 # EMC Infrastruktur Governance
 
 Status: gültig
-Stand: 2026-06-03
+Stand: 2026-06-04
 
 ---
 
@@ -223,9 +223,94 @@ Root wird nicht für den Regelbetrieb verwendet.
 
 ---
 
-# 7. Monitoring Governance
+# 7. Datenbank Governance
 
-## 7.1 Ziel
+## 7.1 Namenskonvention
+
+Seit Phase 11 gilt verbindlich:
+
+```text
+<fachbereich>_<umgebung>
+```
+
+Beispiele:
+
+```text
+emc_mitglieder_dev
+emc_mitglieder_prod
+
+emc_finanzen_dev
+emc_finanzen_prod
+```
+
+---
+
+## 7.2 Umgebungskennzeichnung
+
+Jede produktive und nichtproduktive Datenbank muss ihre Umgebung im Datenbanknamen tragen.
+
+Nicht zulässig:
+
+```text
+emc_mitglieder
+emc_finanzen
+```
+
+Ausnahme:
+
+```text
+temporäre Legacy-Datenbanken
+für dokumentierte Rollback-Zwecke
+```
+
+---
+
+## 7.3 Datenbankrollen
+
+Datenbankrollen werden umgebungsbezogen vergeben.
+
+Beispiele:
+
+```text
+role_emc_mitglieder_dev_rw
+role_emc_mitglieder_prod_rw
+
+role_emc_access_mitglieder_dev_rw
+role_emc_access_mitglieder_prod_rw
+```
+
+Ziel:
+
+```text
+eindeutige Zuordnung
+keine Umgebungsvermischung
+```
+
+---
+
+## 7.4 Access-Kompatibilität
+
+Die Datenbank-Namenskonvention muss mit der DSN-less Access-Architektur kompatibel bleiben.
+
+Produktive Konfigurationen werden über:
+
+```text
+dbconfig_prod.ini
+```
+
+bereitgestellt.
+
+Entwicklungskonfigurationen über:
+
+```text
+dbconfig.ini
+```
+
+---
+
+# 8. Monitoring Governance
+
+## 8.1 Ziel
 
 Monitoring dient nicht primär der Containerüberwachung.
 
@@ -239,7 +324,7 @@ Monitoring dient der frühzeitigen Erkennung von:
 
 ---
 
-## 7.2 Monitoring-Prinzip
+## 8.2 Monitoring-Prinzip
 
 Fachliche Prüfungen sind technischen Prüfungen vorzuziehen.
 
@@ -259,7 +344,7 @@ MariaDB Login erfolgreich
 
 ---
 
-## 7.3 Monitoring-Struktur
+## 8.3 Monitoring-Struktur
 
 Die Uptime-Kuma-Monitore werden nach Betriebsrelevanz gruppiert.
 
@@ -291,7 +376,7 @@ INFRA Portainer
 
 ---
 
-## 7.4 Recovery-Relevante Monitore
+## 8.4 Recovery-Relevante Monitore
 
 Besondere Bedeutung besitzen:
 
@@ -310,7 +395,7 @@ Diese Monitore überwachen unmittelbar:
 
 ---
 
-## 7.5 Neue Dienste
+## 8.5 Neue Dienste
 
 Jeder neue produktive Dienst muss vor Inbetriebnahme bewertet werden hinsichtlich:
 
@@ -322,9 +407,9 @@ Jeder neue produktive Dienst muss vor Inbetriebnahme bewertet werden hinsichtlic
 
 ---
 
-# 8. Dokumentations Governance
+# 9. Dokumentations Governance
 
-## 8.1 Pflichtdokumentation
+## 9.1 Pflichtdokumentation
 
 Folgende Bereiche sind aktuell zu halten:
 
@@ -336,13 +421,13 @@ Folgende Bereiche sind aktuell zu halten:
 
 ---
 
-## 8.2 Nachvollziehbarkeit
+## 9.2 Nachvollziehbarkeit
 
 Technische Entscheidungen sind nachvollziehbar zu dokumentieren.
 
 ---
 
-## 8.3 Ergebnisdokumente
+## 9.3 Ergebnisdokumente
 
 Größere Infrastrukturmaßnahmen werden durch eigene Ergebnisdokumente dokumentiert.
 
@@ -350,9 +435,9 @@ Diese dienen als Projekt- und Entscheidungsnachweis.
 
 ---
 
-# 9. Änderungsmanagement
+# 10. Änderungsmanagement
 
-## 9.1 Grundsatz
+## 10.1 Grundsatz
 
 Änderungen erfolgen kontrolliert.
 
@@ -364,19 +449,19 @@ Vor Änderungen sind zu prüfen:
 
 ---
 
-## 9.2 Produktionssysteme
+## 10.2 Produktionssysteme
 
 Änderungen an PROD erfolgen bewusst und nachvollziehbar.
 
 ---
 
-## 9.3 Nachdokumentation
+## 10.3 Nachdokumentation
 
 Jede dauerhafte Infrastrukturänderung wird in EMC-INFRA dokumentiert.
 
 ---
 
-# 10. Gültigkeit
+# 11. Gültigkeit
 
 Dieses Dokument gilt für die gesamte Infrastruktur der EMC Mitgliederverwaltung auf dem UGREEN NAS einschließlich:
 
@@ -391,3 +476,16 @@ Dieses Dokument gilt für die gesamte Infrastruktur der EMC Mitgliederverwaltung
 - Syncthing
 - Security-Struktur
 - zukünftige Erweiterungen
+
+---
+
+# Änderungslog
+
+| Datum      | Änderung                                                                                                                                      |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-06-03 | Initiale Governance-Fassung                                                                                                                   |
+| 2026-06-04 | Datenbank Governance ergänzt, verbindliche Naming-Konvention `<fachbereich>_<umgebung>` eingeführt, Access- und Rollenmodellbezug nachgeführt |
+
+```
+
+```

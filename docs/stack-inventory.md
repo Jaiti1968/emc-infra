@@ -1,6 +1,6 @@
 # Stack Inventory
 
-Status: Phase 10 abgeschlossen
+Status: Phase 11 abgeschlossen
 Ablageziel: `emc-infra/docs/stack-inventory.md`
 
 ---
@@ -152,6 +152,14 @@ INFRA MariaDB
 - phpMyAdmin verwendet dedizierten GUI-Admin (`emc_phpmyadmin_admin`)
 - Phase 10 führte zusätzlich einen Login-basierten Monitoring-Check ein
 - INFRA MariaDB dient aktuell noch als Parallelmonitor während der Beobachtungsphase
+- Phase 11 führte die Standardisierung der Datenbanknamen auf das Schema <fachbereich>\_<umgebung> durch
+- Produktive Datenbanken:
+  - emc_mitglieder_prod
+  - emc_finanzen_prod
+- Entwicklungsdatenbanken:
+  - emc_mitglieder_dev
+  - emc_finanzen_dev
+- Legacy-Datenbanken emc_mitglieder und emc_finanzen verbleiben temporär als Rollback-Sicherung
 
 ---
 
@@ -543,6 +551,12 @@ compose/emc-mitglieder-backend-prod/docker-compose.yml
 APP Backend PROD
 ```
 
+### Bemerkungen
+
+- DB_URL verweist seit Phase 11 auf emc_mitglieder_prod
+- Runtime-User bleibt emc_mitglieder_prod_rw
+- Runtime-Test gegen Produktivdatenbank erfolgreich validiert
+
 ---
 
 ## emc-mitglieder-frontend-dev
@@ -651,6 +665,37 @@ APP Frontend PROD
 
 ---
 
+# Datenbankinventar
+
+## Produktive Datenbanken
+
+```text
+emc_mitglieder_prod
+emc_finanzen_prod
+```
+
+## Entwicklungsdatenbanken
+
+```text
+emc_mitglieder_dev
+emc_finanzen_dev
+```
+
+## Temporäre Legacy-Datenbanken
+
+```text
+emc_mitglieder
+emc_finanzen
+```
+
+Status:
+
+nicht mehr produktiv genutzt
+dienen temporär als Rollback-Sicherung nach Phase 11
+Löschung erst nach gesonderter Freigabe
+
+---
+
 # Historische Altstrukturen
 
 ## Home-basierte Altstruktur
@@ -689,9 +734,10 @@ Nicht Bestandteil der bisherigen Phasen:
 
 # Änderungslog
 
-| Datum      | Änderung                                                              |
-| ---------- | --------------------------------------------------------------------- |
-| 2026-05-26 | Initiale Inventarisierung                                             |
-| 2026-05-30 | Syncthing ergänzt                                                     |
-| 2026-06-01 | Rollenmodell und Security-Härtung nachgeführt                         |
-| 2026-06-03 | Monitoring-Gruppen, DATA MariaDB Login und DATA Syncthing NAS ergänzt |
+| Datum      | Änderung                                                                                           |
+| ---------- | -------------------------------------------------------------------------------------------------- |
+| 2026-05-26 | Initiale Inventarisierung                                                                          |
+| 2026-05-30 | Syncthing ergänzt                                                                                  |
+| 2026-06-01 | Rollenmodell und Security-Härtung nachgeführt                                                      |
+| 2026-06-03 | Monitoring-Gruppen, DATA MariaDB Login und DATA Syncthing NAS ergänzt                              |
+| 2026-06-04 | Datenbank-Naming-Migration auf \_prod abgeschlossen, Backup- und Runtime-Konfiguration nachgeführt |

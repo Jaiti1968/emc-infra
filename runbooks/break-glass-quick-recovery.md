@@ -1,6 +1,6 @@
 # Break-Glass Quick Recovery
 
-Status: Phase 9 Datenbank Rollenmodell / Access-Härtung
+Status: Phase 11 abgeschlossen
 
 ## Zweck
 
@@ -70,7 +70,7 @@ Prüfen:
 Führender Speicherort:
 
 ```text
-C:\Users\Joerg\Documents\Security
+D:\Security
 ```
 
 NAS-Replik:
@@ -90,7 +90,7 @@ Betriebsmodell:
 ```text
 Laptop = Source of Truth
 NAS = Replik
-Desktop = zusätzlicher Client
+Desktop = zusätzlicher Recovery-Client
 ```
 
 ---
@@ -131,6 +131,20 @@ Runtime User
 Access User
 ```
 
+Produktive Datenbanken:
+
+```text
+emc_mitglieder_prod
+emc_finanzen_prod
+```
+
+Entwicklungsdatenbanken:
+
+```text
+emc_mitglieder_dev
+emc_finanzen_dev
+```
+
 Wichtige Benutzer:
 
 ```text
@@ -153,9 +167,22 @@ Prüfen:
 ```text
 DSN-less Verbindung
 dbconfig.ini
+dbconfig_prod.ini
 BuildMariaDbConnectString()
 Netzwerkverbindung
 Datenbankzugriff
+```
+
+Produktive Konfiguration:
+
+```text
+dbconfig_prod.ini
+```
+
+Entwicklung:
+
+```text
+dbconfig.ini
 ```
 
 ---
@@ -209,8 +236,16 @@ Nicht ohne Recoverybewertung:
 - WireGuard neu erzeugen
 - SSH Benutzer löschen
 - Runtime-Secrets überschreiben
-- Datenbanken löschen
+- produktive Datenbanken löschen
 - Docker Volumes löschen
+
+Zusätzlich:
+
+```text
+Legacy-Datenbanken nicht löschen
+```
+
+solange sie als Rollback-Sicherung dienen.
 
 ---
 
@@ -236,10 +271,46 @@ Dokumentation vor Änderungen prüfen.
 
 ---
 
+## Datenbankstandard
+
+Seit Phase 11 gilt:
+
+```text
+<fachbereich>_<umgebung>
+```
+
+Produktiv:
+
+```text
+emc_mitglieder_prod
+emc_finanzen_prod
+```
+
+Entwicklung:
+
+```text
+emc_mitglieder_dev
+emc_finanzen_dev
+```
+
+Temporäre Rollback-Datenbanken:
+
+```text
+emc_mitglieder
+emc_finanzen
+```
+
+---
+
 ## Änderungslog
 
-| Datum      | Änderung                                            |
-| ---------- | --------------------------------------------------- |
-| 2026-05-26 | Initiale Version                                    |
-| 2026-05-30 | Security-Artefakte und Syncthing ergänzt            |
-| 2026-06-01 | Rollenmodell, DBA-Modell und Access-Härtung ergänzt |
+| Datum      | Änderung                                                                                       |
+| ---------- | ---------------------------------------------------------------------------------------------- |
+| 2026-05-26 | Initiale Version                                                                               |
+| 2026-05-30 | Security-Artefakte und Syncthing ergänzt                                                       |
+| 2026-06-01 | Rollenmodell, DBA-Modell und Access-Härtung ergänzt                                            |
+| 2026-06-04 | Datenbank Naming Migration auf \_prod dokumentiert, Access-Konfigurationsstandard aktualisiert |
+
+```
+
+```

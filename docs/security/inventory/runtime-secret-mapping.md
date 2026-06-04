@@ -1,6 +1,6 @@
 # Runtime Secret Mapping
 
-Status: Phase 9 Datenbank Rollenmodell / Access-Härtung
+Status: Phase 11 Datenbank Naming Migration
 
 ## Zweck
 
@@ -22,7 +22,7 @@ Dieses Dokument enthält bewusst keine produktiven Secretwerte.
 
 ## Source of Truth
 
-```text id="1z4v7u"
+```text
 KeePass
 =
 Credential Source of Truth
@@ -32,7 +32,7 @@ Credential Source of Truth
 
 ## Infrastruktur Source of Truth
 
-```text id="2c3u3j"
+```text
 GitHub
 └── emc-infra
 ```
@@ -41,7 +41,7 @@ GitHub
 
 ## Betriebsrollen
 
-```text id="w06qxr"
+```text
 Runtime
 Access
 Administration
@@ -70,6 +70,25 @@ Bemerkungen:
 - Root nur noch lokal nutzbar
 - `root@localhost`
 - `root@%` entfernt
+- Datenbank-Namensstandard seit Phase 11:
+
+```text
+<fachbereich>_<umgebung>
+```
+
+Produktive Datenbanken:
+
+```text
+emc_mitglieder_prod
+emc_finanzen_prod
+```
+
+Entwicklungsdatenbanken:
+
+```text
+emc_mitglieder_dev
+emc_finanzen_dev
+```
 
 ---
 
@@ -84,6 +103,15 @@ Bemerkungen:
 | Recovery-Relevanz | hoch              |
 | Credential Source | KeePass           |
 
+Verwendete Datenbanken:
+
+```text
+emc_mitglieder_prod
+emc_mitglieder_dev
+emc_finanzen_prod
+emc_finanzen_dev
+```
+
 ---
 
 ## Uptime Kuma
@@ -97,7 +125,7 @@ Bemerkungen:
 
 Recovery-kritische Daten:
 
-```text id="l0f23p"
+```text
 kuma.db
 ```
 
@@ -136,11 +164,24 @@ kuma.db
 | ----------------- | ---------------------------------- |
 | Container         | `emc-mitglieder-backend-prod`      |
 | DB User           | `emc_mitglieder_prod_rw`           |
-| Datenbank         | `emc_mitglieder`                   |
+| Datenbank         | `emc_mitglieder_prod`              |
 | Secret Typ        | DB_URL / DB_USERNAME / DB_PASSWORD |
 | Kritikalität      | kritisch                           |
 | Recovery-Relevanz | hoch                               |
 | Credential Source | KeePass                            |
+
+Runtime-Konfiguration:
+
+```text
+DB_URL=jdbc:mariadb://mariadb:3306/emc_mitglieder_prod
+DB_USERNAME=emc_mitglieder_prod_rw
+```
+
+Validiert:
+
+```text
+Phase 11 Datenbank Naming Migration
+```
 
 ---
 
@@ -161,7 +202,7 @@ Keine produktiven Secrets.
 
 Abhängigkeit:
 
-```text id="ukv0ll"
+```text
 Backend DEV API
 ```
 
@@ -173,7 +214,7 @@ Keine produktiven Secrets.
 
 Abhängigkeit:
 
-```text id="x9f5vb"
+```text
 Backend PROD API
 ```
 
@@ -192,6 +233,12 @@ Backend PROD API
 | Speicherort       | `dbconfig.ini`                 |
 | Credential Source | KeePass                        |
 
+NAS Source of Truth:
+
+```text
+/volume1/apps/access/emc_mitglieder/dev/dbconfig.ini
+```
+
 ---
 
 ## PROD RW
@@ -200,10 +247,16 @@ Backend PROD API
 | ----------------- | ------------------------------- |
 | Anwendung         | Access Mitglieder PROD          |
 | DB User           | `emc_access_mitglieder_prod_rw` |
-| Datenbank         | `emc_mitglieder`                |
+| Datenbank         | `emc_mitglieder_prod`           |
 | Secret Typ        | ODBC Credential                 |
-| Speicherort       | `dbconfig.ini`                  |
+| Speicherort       | `dbconfig_prod.ini`             |
 | Credential Source | KeePass                         |
+
+NAS Source of Truth:
+
+```text
+/volume1/apps/access/emc_mitglieder/prod/dbconfig_prod.ini
+```
 
 ---
 
@@ -213,7 +266,7 @@ Backend PROD API
 | ----------------- | ------------------------------- |
 | Anwendung         | Access Mitglieder PROD          |
 | DB User           | `emc_access_mitglieder_prod_ro` |
-| Datenbank         | `emc_mitglieder`                |
+| Datenbank         | `emc_mitglieder_prod`           |
 | Verwendung        | Read Only                       |
 | Credential Source | KeePass                         |
 
@@ -232,6 +285,12 @@ Backend PROD API
 | Speicherort       | `dbconfig.ini`               |
 | Credential Source | KeePass                      |
 
+NAS Source of Truth:
+
+```text
+/volume1/apps/access/emc_finanzen/dev/dbconfig.ini
+```
+
 ---
 
 ## PROD
@@ -240,10 +299,16 @@ Backend PROD API
 | ----------------- | ----------------------------- |
 | Anwendung         | Access Finanzen PROD          |
 | DB User           | `emc_access_finanzen_prod_rw` |
-| Datenbank         | `emc_finanzen`                |
+| Datenbank         | `emc_finanzen_prod`           |
 | Secret Typ        | ODBC Credential               |
-| Speicherort       | `dbconfig.ini`                |
+| Speicherort       | `dbconfig_prod.ini`           |
 | Credential Source | KeePass                       |
+
+NAS Source of Truth:
+
+```text
+/volume1/apps/access/emc_finanzen/prod/dbconfig_prod.ini
+```
 
 ---
 
@@ -260,7 +325,7 @@ Backend PROD API
 
 Eigenschaften:
 
-```text id="7jql4j"
+```text
 kein GRANT OPTION
 kein Superuser
 ```
@@ -277,7 +342,7 @@ kein Superuser
 
 Grund:
 
-```text id="pr6bsz"
+```text
 phpMyAdmin 5.2.3 Rollen-Inkompatibilität
 ```
 
@@ -300,12 +365,13 @@ phpMyAdmin 5.2.3 Rollen-Inkompatibilität
 
 ## Produktive Runtime
 
-| Speicherort           | Status    |
-| --------------------- | --------- |
-| lokale `.env` Dateien | produktiv |
-| Access `dbconfig.ini` | produktiv |
-| `kuma.db`             | produktiv |
-| KeePass               | produktiv |
+| Speicherort                | Status    |
+| -------------------------- | --------- |
+| lokale `.env` Dateien      | produktiv |
+| Access `dbconfig.ini`      | produktiv |
+| Access `dbconfig_prod.ini` | produktiv |
+| `kuma.db`                  | produktiv |
+| KeePass                    | produktiv |
 
 ---
 
@@ -313,7 +379,7 @@ phpMyAdmin 5.2.3 Rollen-Inkompatibilität
 
 Nicht erlaubt:
 
-```text id="ey1dhg"
+```text
 Passwörter in Git
 Passwörter in Markdown
 Passwörter in Commit-History
@@ -325,7 +391,7 @@ Passwörter in Commit-History
 
 Credential-Änderungen müssen folgende Systeme berücksichtigen:
 
-```text id="bq57yx"
+```text
 MariaDB
 Backup
 Backend DEV
@@ -334,6 +400,7 @@ Access Mitglieder
 Access Finanzen
 phpMyAdmin
 Recovery
+Monitoring
 ```
 
 ---
@@ -342,7 +409,7 @@ Recovery
 
 Aktueller Zielzustand:
 
-```text id="nt9n3z"
+```text
 Runtime sauber getrennt
 Access sauber getrennt
 Administration sauber getrennt
@@ -351,19 +418,19 @@ Recovery sauber getrennt
 
 Credential Source:
 
-```text id="z17zfr"
+```text
 KeePass
 ```
 
 Recovery Source:
 
-```text id="79k2ha"
+```text
 Recovery Dokumentation
 ```
 
 Governance Source:
 
-```text id="i8ukvn"
+```text
 GitHub emc-infra
 ```
 
@@ -371,7 +438,12 @@ GitHub emc-infra
 
 # Änderungslog
 
-| Datum      | Änderung                                                              |
-| ---------- | --------------------------------------------------------------------- |
-| 2026-05-27 | Initiale Secret-Mapping-Dokumentation                                 |
-| 2026-06-01 | Vollständige Überarbeitung nach Phase 9 Rollenmodell / Access-Härtung |
+| Datum      | Änderung                                                                                                                                 |
+| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-05-27 | Initiale Secret-Mapping-Dokumentation                                                                                                    |
+| 2026-06-01 | Vollständige Überarbeitung nach Phase 9 Rollenmodell / Access-Härtung                                                                    |
+| 2026-06-04 | Datenbank Naming Migration auf \_prod abgeschlossen, Backend PROD, Access PROD, Backup und Monitoring auf neue Datenbanknamen umgestellt |
+
+```
+
+```
