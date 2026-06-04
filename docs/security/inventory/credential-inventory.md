@@ -1,6 +1,6 @@
 # EMC NAS Betriebsstandardisierung – Credential Inventory
 
-Status: Phase 9 abgeschlossen / Phase 8b nachgeführt
+Status: Phase 10 abgeschlossen
 Ablageziel: `emc-infra/docs/security/inventory/credential-inventory.md`
 
 Wichtig: Dieses Dokument enthält bewusst keine Klartextpasswörter.
@@ -11,7 +11,7 @@ Wichtig: Dieses Dokument enthält bewusst keine Klartextpasswörter.
 
 Dieses Dokument beschreibt alle sicherheitsrelevanten Zugänge der EMC-Infrastruktur, deren Zweck, Verantwortlichkeiten sowie die jeweilige Credential Source of Truth.
 
-Ziel ist schnelle Orientierung für Betrieb, Recovery und Break-Glass ohne Speicherung von Secrets in Git.
+Ziel ist schnelle Orientierung für Betrieb, Recovery, Monitoring und Break-Glass ohne Speicherung von Secrets in Git.
 
 ---
 
@@ -233,6 +233,63 @@ Read Only Backup Rechte
 
 ---
 
+# Monitoring Benutzer
+
+## MariaDB Monitoring
+
+### emc_monitoring
+
+Verwendung:
+
+```text
+Uptime Kuma
+DATA MariaDB Login
+```
+
+Zweck:
+
+```text
+Technischer Monitoring-Benutzer
+für echte MariaDB-Verbindungsprüfungen
+```
+
+Architektur:
+
+```text
+Uptime Kuma
+      ↓
+emc_monitoring
+      ↓
+MariaDB Login
+      ↓
+SELECT 1
+```
+
+Nicht verwenden für:
+
+```text
+Runtime
+Access
+Administration
+Backup
+Recovery
+Tests
+```
+
+Besonderheit:
+
+```text
+Ausschließlich für Monitoring vorgesehen.
+```
+
+Einführung:
+
+```text
+Phase 10 Monitoring / Healthcheck Ausbau
+```
+
+---
+
 # Access Benutzer
 
 ## Mitglieder DEV
@@ -447,9 +504,34 @@ Syncthing-Gerätezertifikate
 KeePass-Masterpasswort
 ```
 
-Hinweis:
+---
 
-Die NAS-GUI kann ohne Passwort eine Syncthing-Warnung anzeigen, da sie im Heimnetz erreichbar ist. Dies ist bewusst akzeptiert, solange kein externer Zugriff bzw. kein Portforwarding auf die Syncthing-GUI besteht.
+# Monitoring Credential Governance
+
+Monitoring-Credentials werden getrennt von Runtime-, Access- und Administrations-Credentials verwaltet.
+
+Grundsatz:
+
+```text
+Monitoring ≠ Runtime
+Monitoring ≠ Administration
+Monitoring ≠ Recovery
+```
+
+Ziel:
+
+```text
+Least Privilege
+minimierte Auswirkungen
+saubere Rollentrennung
+```
+
+Neue produktive Monitoring-Credentials sind in:
+
+- KeePass
+- Credential Inventory
+
+zu dokumentieren.
 
 ---
 
@@ -474,3 +556,4 @@ Die NAS-GUI kann ohne Passwort eine Syncthing-Warnung anzeigen, da sie im Heimne
 | 2026-05-30 | Lokale Security-Struktur und Syncthing ergänzt                                                                   |
 | 2026-06-01 | Rollenmodell, Access-User, Break-Glass-Modell und phpMyAdmin-Admin ergänzt                                       |
 | 2026-06-02 | Desktop-Recovery-Client ergänzt, Security-Struktur nach D:\Security migriert, Syncthing GUI-Credentials entfernt |
+| 2026-06-03 | Monitoring-Benutzer emc_monitoring ergänzt, Monitoring Credential Governance eingeführt                          |

@@ -1,371 +1,393 @@
-# Infra Governance
+# EMC Infrastruktur Governance
 
-## Zweck
-
-Dieses Dokument definiert die verbindlichen Governance-Regeln für die technische Betriebsinfrastruktur der EMC Mitgliederverwaltung.
-
-Es gilt für:
-
-- Docker Compose
-- NAS-Betriebsartefakte
-- Git-basierte Infrastrukturverwaltung
-- Portainer-Nutzung
-- operative Infrastrukturänderungen
-- Credential Management
-- Recovery-Strukturen
+Status: gültig
+Stand: 2026-06-03
 
 ---
 
-## Source of Truth
+# 1. Zweck
 
-Verbindliche Source-of-Truth-Struktur:
+Dieses Dokument definiert die technischen Governance-Regeln für die Betriebsumgebung der EMC Mitgliederverwaltung.
+
+Ziele:
+
+- nachvollziehbarer Betrieb
+- reproduzierbare Deployments
+- kontrollierte Änderungen
+- dokumentierte Recovery-Prozesse
+- minimierte Betriebsrisiken
+- klare Verantwortlichkeiten
+- standardisierte Monitoring- und Security-Strukturen
+
+Dieses Dokument bildet die übergeordnete Governance für alle produktiven und Entwicklungsumgebungen der EMC Mitgliederverwaltung.
+
+---
+
+# 2. Source of Truth
+
+## 2.1 Grundsatz
+
+Das Git-Repository
 
 ```text
-GitHub emc-infra
-    =
-Infrastruktur Source of Truth
-
-KeePass
-    =
-Credential Source of Truth
-
-Laptop D:\Security
-    =
-Security-Artefakte Source of Truth
+emc-infra
 ```
 
-Nicht Source of Truth:
+ist die technische Source of Truth für die Infrastruktur.
 
-- Portainer-interne Stack-Konfiguration
-- spontane UI-Konfigurationen
-- historische Compose-Dateien
-- NAS-Replik der Security-Struktur
-- Desktop-Replik der Security-Struktur
-- undokumentierte lokale Änderungen
+Dort werden gepflegt:
 
----
-
-## Betriebsmodell
-
-Standard:
-
-```text
-Windows Arbeitsumgebung
-    ↓
-Git Änderung
-    ↓
-Commit
-    ↓
-Push GitHub
-    ↓
-Übernahme auf NAS
-    ↓
-Deployment
-```
-
-### Rollen
-
-### GitHub
-
-Architektonisch verbindlicher Sollstand.
-
-### Windows-Arbeitsplatz
-
-Authoring, Änderung, Branching, Commit, Push.
-
-### NAS
-
-Operative Deploy-Kopie:
-
-```text
-/volume1/docker/compose
-```
-
-### Portainer
-
-Deploymenthilfe, nicht Primärquelle.
+- Docker Compose Dateien
+- Betriebsdokumentation
+- Recovery-Dokumentation
+- Security-Dokumentation
+- Inventare
+- Governance-Dokumente
 
 ---
 
-## Grundprinzipien
+## 2.2 Änderungen
 
-### Recovery First
+Infrastrukturänderungen werden grundsätzlich zuerst im Repository dokumentiert.
 
-Vor produktiven Änderungen gilt:
+Ausnahmen:
 
-- Wiederherstellbarkeit sicherstellen
-- Recovery-Pfade dokumentieren
-- keine destruktiven Änderungen ohne Rückweg
+- Break-Glass Situationen
+- akute Störungsbehebung
 
----
-
-### Keine Blindbereinigung
-
-Nicht erlaubt:
-
-- spontane Löschung unbekannter Container
-- spontane Löschung unbekannter Volumes
-- spontane Löschung unbekannter Docker-Netze
-- spontane Löschung unbekannter Dateien
-
-Altlasten werden kontrolliert bewertet.
+Diese Änderungen sind zeitnah nachzudokumentieren.
 
 ---
 
-### Kontrollierte Migration
+## 2.3 NAS
 
-Nicht erlaubt:
+Das NAS ist Laufzeitumgebung.
 
-Big-Bang-Umbauten ohne Absicherung.
-
-Standard:
-
-- kleine nachvollziehbare Änderungen
-- klarer Rollback
-- dokumentierter Zustand
+Das NAS ist nicht die primäre Dokumentationsquelle.
 
 ---
 
-## Secrets Governance
+# 3. Docker Governance
 
-Secrets dürfen nicht im Git versioniert werden.
+## 3.1 Compose Standard
 
-Nicht erlaubt:
+Alle produktiven Services werden über Docker Compose betrieben.
 
-- Passwörter in Compose-Dateien
-- Credentials in Markdown-Dokumentation
-- Secrets in Commit-History
+Einzelne manuelle Docker-Container sind nicht zulässig.
 
-Aktuell erlaubter Standard:
+---
 
-lokale `.env` Dateien außerhalb Git.
+## 3.2 Container-Namen
+
+Containernamen sind explizit festzulegen.
 
 Beispiele:
 
 ```text
-compose/mariadb/.env
-compose/mariadb-backup/.env
-compose/emc-mitglieder-backend-dev/.env
-compose/emc-mitglieder-backend-prod/.env
+emc-mitglieder-backend-prod
+emc-mitglieder-backend-dev
+emc-mitglieder-frontend-prod
+emc-mitglieder-frontend-dev
+mariadb
+phpmyadmin
+portainer
+uptime-kuma
+syncthing
 ```
-
-Docker-Secrets-Migration bleibt ein mögliches Zukunftsthema.
 
 ---
 
-## Credential Governance
+## 3.3 Netzwerke
 
-Verbindlicher Standard:
+Produktive Container werden ausschließlich über definierte Docker-Netzwerke verbunden.
+
+Standardnetz:
 
 ```text
-KeePass
-=
-Credential Source of Truth
+emc_net
 ```
+
+---
+
+## 3.4 Volumes
+
+Persistente Daten dürfen niemals ausschließlich im Container liegen.
+
+Alle produktiven Daten werden über persistente Volumes oder Bind Mounts gespeichert.
+
+---
+
+# 4. Deployment Governance
+
+## 4.1 Frontend
+
+Frontend-Deployments erfolgen über:
+
+```text
+GitHub Actions
+Build
+Artefaktbereitstellung
+Deployment auf NAS
+```
+
+---
+
+## 4.2 Backend
+
+Backend-Deployments erfolgen über:
+
+```text
+GitHub Actions
+Build
+Docker Image
+Deployment auf NAS
+```
+
+---
+
+## 4.3 Rollback
+
+Rollback muss jederzeit möglich sein.
+
+Vor produktiven Änderungen sind vorhandene Artefakte aufzubewahren.
+
+---
+
+# 5. Backup Governance
+
+## 5.1 Datenbank
+
+MariaDB wird regelmäßig gesichert.
+
+Sicherungen müssen:
+
+- erfolgreich erstellt werden
+- lesbar sein
+- aktuell sein
+
+---
+
+## 5.2 Recovery
+
+Backup ohne getestete Wiederherstellung gilt nicht als verifiziert.
+
+Restore-Tests sind Bestandteil der Betriebsdokumentation.
+
+---
+
+## 5.3 USB-Offsite-Sicherung
+
+Die zusätzliche USB-Sicherung ist Bestandteil der Recovery-Strategie.
+
+---
+
+# 6. Security Governance
+
+## 6.1 Passwortmanagement
+
+Alle produktiven Zugangsdaten werden in KeePass verwaltet.
+
+Klartextpasswörter dürfen nicht dokumentiert werden.
+
+---
+
+## 6.2 Passwortstandard
+
+Passwörter:
+
+```text
+mindestens 26 Zeichen
+empfohlen 28 Zeichen
+```
+
+---
+
+## 6.3 Rollenmodell
+
+MariaDB-Zugriffe erfolgen über dedizierte Benutzerrollen.
 
 Grundsätze:
 
-- Zugangsdaten werden ausschließlich in KeePass gepflegt.
-- Runtime-Credentials werden aus KeePass in produktive `.env` Dateien übertragen.
-- Zugangsdaten werden nicht in Git gespeichert.
-- Zugangsdaten werden nicht in Dokumentationen gespeichert.
-- Credential-Rotationen sind zu dokumentieren.
-- KeePass ist Bestandteil des Recovery-Konzepts.
-
-Betriebsrollen:
-
-```text
-Runtime
-Access
-Administration
-Recovery
-```
-
-werden getrennt verwaltet.
+- Least Privilege
+- Trennung von Runtime und Administration
+- Trennung von DEV und PROD
+- Trennung von Access und Backend
 
 ---
 
-## Branch Governance
+## 6.4 Root
 
-Standardbranch:
+MariaDB Root ist Break-Glass-Zugang.
 
-```text
-master
-```
-
-### Änderungsmodell
-
-### Kleine Infrastrukturänderungen
-
-Direkt auf `master` möglich.
-
-### Größere Änderungen
-
-Feature-Branch empfohlen.
-
-Beispiele:
-
-```text
-feature/backup-standardization
-feature/frontend-image-migration
-feature/network-segmentation
-feature/credential-hardening
-```
+Root wird nicht für den Regelbetrieb verwendet.
 
 ---
 
-## Change Governance
+# 7. Monitoring Governance
 
-Jede Infrastrukturänderung soll enthalten:
+## 7.1 Ziel
 
-- Zweck
-- Risiko
-- Rollback
-- technische Änderung
-- Dokumentationsanpassung
+Monitoring dient nicht primär der Containerüberwachung.
+
+Monitoring dient der frühzeitigen Erkennung von:
+
+- Betriebsstörungen
+- Datenverlust-Risiken
+- Recovery-Risiken
+- Synchronisationsproblemen
+- Infrastrukturfehlern
 
 ---
 
-## Deployment Governance
+## 7.2 Monitoring-Prinzip
 
-Standard:
+Fachliche Prüfungen sind technischen Prüfungen vorzuziehen.
 
-Git zuerst.
+Beispiel:
 
-Nicht erlaubt:
-
-Portainer-UI-Änderungen ohne Rückführung ins Git.
-
-Zulässiger Ablauf:
+Nicht nur:
 
 ```text
-Compose ändern
-→ Git Commit
-→ Push
-→ NAS aktualisieren
-→ Deployment
+Port 3306 erreichbar
+```
+
+sondern:
+
+```text
+MariaDB Login erfolgreich
 ```
 
 ---
 
-## NAS Filesystem Standard
+## 7.3 Monitoring-Struktur
 
-Produktive Betriebsartefakte liegen unter:
+Die Uptime-Kuma-Monitore werden nach Betriebsrelevanz gruppiert.
 
-```text
-/volume1/docker
-```
-
-Zielstruktur:
+### Anwendungen
 
 ```text
-/volume1/docker
-├── compose
-├── docs
-├── runbooks
-├── recovery
-├── secrets
-├── backups
-├── build
-├── monitoring
-└── volumes
+APP Backend DEV
+APP Backend PROD
+APP Frontend DEV
+APP Frontend PROD
 ```
 
-Nicht Standard:
+### Daten & Recovery
 
-private Home-Verzeichnisse als dauerhafte Produktivbasis.
+```text
+DATA DB Backup Healthcheck
+DATA MariaDB Login
+DATA Syncthing NAS
+```
 
-Historische Altstrukturen können temporär bestehen, bis kontrollierte Migration erfolgt.
+### Infrastruktur
+
+```text
+INFRA MariaDB
+INFRA mariadb-backup
+INFRA phpMyAdmin
+INFRA Portainer
+```
 
 ---
 
-### Bewusste Ausnahme
+## 7.4 Recovery-Relevante Monitore
+
+Besondere Bedeutung besitzen:
 
 ```text
-Laptop:
-D:\Security
-
-NAS:
-/volume1/home/JaitiNissi1968/Security
-
-Desktop:
-D:\Security
+DATA DB Backup Healthcheck
+DATA MariaDB Login
+DATA Syncthing NAS
 ```
 
-Diese Struktur ist keine Docker-Runtime-Struktur, sondern die zentrale Security- und Recovery-Struktur.
+Diese Monitore überwachen unmittelbar:
 
-Synchronisation erfolgt über:
-
-```text
-Syncthing
-```
-
-Architektur:
-
-```text
-Laptop (Source of Truth)
-        ⇅
-     Syncthing
-    ↙       ↘
- NAS       Desktop
-```
-
-Rollen:
-
-```text
-Laptop
-=
-führende Arbeitskopie
-
-NAS
-=
-Replik
-+ Dateiversionierung
-+ Recovery-Kopie
-
-Desktop
-=
-zusätzliche Replik
-+ Recovery-Client
-```
-
-Änderungen an Security-Artefakten erfolgen grundsätzlich auf dem Laptop.
+- Datenverfügbarkeit
+- Backupfähigkeit
+- Wiederherstellbarkeit
+- Replikation kritischer Sicherheitsartefakte
 
 ---
 
-## Dokumentationspflicht
+## 7.5 Neue Dienste
 
-Dokumentationsrelevant:
+Jeder neue produktive Dienst muss vor Inbetriebnahme bewertet werden hinsichtlich:
 
-- neue Stacks
-- Stack-Änderungen
-- Portänderungen
-- Netzwerkanpassungen
-- Backup-Änderungen
-- Recovery-Prozesse
-- Credential-Standards
-- Rollenmodell-Änderungen
-- Benutzer- und Rechtekonzepte
-- Security-Artefakte
-- Recovery-Zugänge
-- Betriebsentscheidungen
+- Monitoring
+- Backup
+- Recovery
+- Security
+- Dokumentation
 
 ---
 
-## Ausnahmen
+# 8. Dokumentations Governance
 
-Temporäre Ausnahmen sind nur bewusst und dokumentiert zulässig.
+## 8.1 Pflichtdokumentation
 
-Beispiele:
+Folgende Bereiche sind aktuell zu halten:
 
-- Incident Recovery
-- Produktionsstörung
-- Break-Glass-Szenarien
-
-Nachgelagerte Dokumentation ist Pflicht.
+- Stack Inventory
+- Credential Inventory
+- Runtime Secret Mapping
+- Recovery Dokumentation
+- Governance Dokumentation
 
 ---
 
-## Gültigkeit
+## 8.2 Nachvollziehbarkeit
 
-Dieses Dokument definiert den verbindlichen Governance-Standard für die EMC NAS-/Docker-Betriebsumgebung nach Abschluss der Phasen 1–9 der EMC NAS Betriebsstandardisierung.
+Technische Entscheidungen sind nachvollziehbar zu dokumentieren.
+
+---
+
+## 8.3 Ergebnisdokumente
+
+Größere Infrastrukturmaßnahmen werden durch eigene Ergebnisdokumente dokumentiert.
+
+Diese dienen als Projekt- und Entscheidungsnachweis.
+
+---
+
+# 9. Änderungsmanagement
+
+## 9.1 Grundsatz
+
+Änderungen erfolgen kontrolliert.
+
+Vor Änderungen sind zu prüfen:
+
+- Auswirkungen
+- Abhängigkeiten
+- Recovery-Möglichkeiten
+
+---
+
+## 9.2 Produktionssysteme
+
+Änderungen an PROD erfolgen bewusst und nachvollziehbar.
+
+---
+
+## 9.3 Nachdokumentation
+
+Jede dauerhafte Infrastrukturänderung wird in EMC-INFRA dokumentiert.
+
+---
+
+# 10. Gültigkeit
+
+Dieses Dokument gilt für die gesamte Infrastruktur der EMC Mitgliederverwaltung auf dem UGREEN NAS einschließlich:
+
+- DEV
+- PROD
+- MariaDB
+- Frontend
+- Backend
+- Backup
+- Monitoring
+- Recovery
+- Syncthing
+- Security-Struktur
+- zukünftige Erweiterungen

@@ -1,8 +1,15 @@
 # Stack Inventory
 
-## Zweck
+Status: Phase 10 abgeschlossen
+Ablageziel: `emc-infra/docs/stack-inventory.md`
+
+---
+
+# Zweck
 
 Dieses Dokument beschreibt den aktuell produktiven Betriebsstand der EMC Infrastruktur einschließlich aller produktiv betriebenen Docker-Stacks, deren Zweck, Betriebsstatus und wesentlichen Betriebsparameter.
+
+Zusätzlich dokumentiert dieses Inventar die Monitoring-Einbindung, Betriebsrelevanz und Recovery-Relevanz der einzelnen Komponenten.
 
 ---
 
@@ -23,52 +30,116 @@ Dieses Dokument beschreibt den aktuell produktiven Betriebsstand der EMC Infrast
 
 ---
 
+# Monitoring Architektur
+
+Seit Phase 10 wird Monitoring nach Betriebsrelevanz strukturiert.
+
+## Anwendungen
+
+```text
+APP Backend DEV
+APP Backend PROD
+APP Frontend DEV
+APP Frontend PROD
+```
+
+Zweck:
+
+- Verfügbarkeit der Anwendungen
+- Erreichbarkeit der Benutzeroberflächen
+- Erreichbarkeit der Backend-Services
+
+---
+
+## Daten & Recovery
+
+```text
+DATA DB Backup Healthcheck
+DATA MariaDB Login
+DATA Syncthing NAS
+```
+
+Zweck:
+
+- Datenverfügbarkeit
+- Wiederherstellbarkeit
+- Backupfähigkeit
+- Replikationsfähigkeit
+
+Diese Gruppe besitzt die höchste Recovery-Relevanz.
+
+---
+
+## Infrastruktur
+
+```text
+INFRA MariaDB
+INFRA mariadb-backup
+INFRA phpMyAdmin
+INFRA Portainer
+```
+
+Zweck:
+
+- technische Infrastrukturüberwachung
+- Hilfsdienste
+- Verwaltungsdienste
+
+---
+
 # Detailinventar
 
 ## mariadb
 
-**Zweck**
+### Zweck
 
 Zentrale MariaDB Datenbank.
 
-**Image**
+### Image
 
 ```text
 mariadb:11
 ```
 
-**Container**
+### Container
 
 ```text
 mariadb
 ```
 
-**Ports**
+### Ports
 
 ```text
 3306:3306
 ```
 
-**Volumes**
+### Volumes
 
 ```text
 mariadb_mariadb_data -> /var/lib/mysql
 ```
 
-**Netzwerke**
+### Netzwerke
 
 ```text
 mariadb_default
 emc_net
 ```
 
-**Konfiguration**
+### Konfiguration
 
 ```text
 compose/mariadb/docker-compose.yml
 ```
 
-**Bemerkungen**
+### Monitoring
+
+```text
+DATA MariaDB Login
+INFRA MariaDB
+```
+
+### Bemerkungen
 
 - Host-Port aktuell fachlich erforderlich wegen Access
 - Root Passwort via .env
@@ -78,195 +149,230 @@ compose/mariadb/docker-compose.yml
 - root@% entfernt
 - root@localhost verbleibt als Break-Glass-Zugang
 - Primärer DBA: JoergTitz
-- phpMyAdmin verwendet dedizierten GUI-Admin (emc_phpmyadmin_admin)
+- phpMyAdmin verwendet dedizierten GUI-Admin (`emc_phpmyadmin_admin`)
+- Phase 10 führte zusätzlich einen Login-basierten Monitoring-Check ein
+- INFRA MariaDB dient aktuell noch als Parallelmonitor während der Beobachtungsphase
 
 ---
 
 ## mariadb-backup
 
-**Zweck**
+### Zweck
 
 Automatisierte MariaDB Dumps.
 
-**Image**
+### Image
 
 ```text
 fradelg/mysql-cron-backup
 ```
 
-**Container**
+### Container
 
 ```text
 mariadb-backup
 ```
 
-**Ports**
+### Ports
 
 Keine.
 
-**Volumes**
+### Volumes
 
 ```text
 /volume1/docker/backups/mariadb:/backup
 ```
 
-**Netzwerke**
+### Netzwerke
 
 ```text
 mariadb_default
 ```
 
-**Konfiguration**
+### Konfiguration
 
 ```text
 compose/mariadb-backup/docker-compose.yml
 ```
 
-**Bemerkungen**
+### Monitoring
+
+```text
+INFRA mariadb-backup
+DATA DB Backup Healthcheck
+```
+
+### Bemerkungen
 
 - täglicher Backupjob
 - Backup-Ziel entspricht Filesystem-Standard
-- dedizierter DB-User emc_backup
+- dedizierter DB-User `emc_backup`
 - Bestandteil des Recovery-Konzepts
+- Container-Monitor prüft nur Laufzeitstatus
+- Recovery-Relevanz wird primär über DATA DB Backup Healthcheck überwacht
 
 ---
 
 ## phpmyadmin
 
-**Zweck**
+### Zweck
 
 DB Administration.
 
-**Image**
+### Image
 
 ```text
 phpmyadmin:latest
 ```
 
-**Container**
+### Container
 
 ```text
 phpmyadmin
 ```
 
-**Ports**
+### Ports
 
 ```text
 8080:80
 ```
 
-**Netzwerke**
+### Netzwerke
 
 ```text
 mariadb_default
 ```
 
-**Konfiguration**
+### Konfiguration
 
 ```text
 compose/phpmyadmin/docker-compose.yml
 ```
 
-**Bemerkungen**
+### Monitoring
+
+```text
+INFRA phpMyAdmin
+```
+
+### Bemerkungen
 
 - On-Demand Nutzung empfohlen
 - dauerhaft produktiv toleriert
 - phpMyAdmin 5.2.3 zeigt Rollen-Inkompatibilität bei rein rollenbasierten Admin-Benutzern
-- Standardzugang für GUI-Administration: emc_phpmyadmin_admin
+- Standardzugang für GUI-Administration: `emc_phpmyadmin_admin`
 - Datenbankadministration erfolgt primär über JoergTitz (CLI)
 
 ---
 
 ## uptime-kuma
 
-**Zweck**
+### Zweck
 
 Monitoring.
 
-**Image**
+### Image
 
 ```text
 louislam/uptime-kuma:2
 ```
 
-**Container**
+### Container
 
 ```text
 uptime-kuma
 ```
 
-**Ports**
+### Ports
 
 ```text
 3001:3001
 ```
 
-**Volumes**
+### Volumes
 
 ```text
 /volume1/docker/volumes/uptime-kuma/data:/app/data
 /var/run/docker.sock:/var/run/docker.sock:ro
 ```
 
-**Netzwerke**
+### Netzwerke
 
 ```text
 uptime-kuma_default
 emc_net
 ```
 
-**Konfiguration**
+### Konfiguration
 
 ```text
 compose/uptime-kuma/docker-compose.yml
 ```
 
-**Bemerkungen**
+### Monitoring
+
+Selbstüberwachung indirekt über Plattformüberwachung.
+
+### Bemerkungen
 
 - Compose und Runtime sind konsistent
 - Monitoring Bestandteil des Recovery-Konzepts
+- Monitoring-Gruppenstruktur Phase 10 eingeführt
+- MariaDB Login Monitoring ergänzt
+- Syncthing Monitoring ergänzt
+
+Phase 10 führte eine gruppierte Monitoring-Struktur ein:
+
+- Anwendungen
+- Daten & Recovery
+- Infrastruktur
+
+sowie die Monitore:
+
+- DATA MariaDB Login
+- DATA Syncthing NAS
 
 ---
 
 ## portainer
 
-**Zweck**
+### Zweck
 
 Deploymenthilfe / Runtime Verwaltung.
 
-**Image**
+### Image
 
 ```text
 portainer/portainer-ce:latest
 ```
 
-**Container**
+### Container
 
 ```text
 portainer
 ```
 
-**Ports**
+### Ports
 
 ```text
 9000:9000
 9443 intern aktiv
 ```
 
-**Volumes**
+### Volumes
 
 ```text
 /volume1/docker/volumes/portainer/data:/data
 /var/run/docker.sock:/var/run/docker.sock
 ```
 
-**Konfiguration**
+### Monitoring
 
 ```text
-compose/portainer/docker-compose.yml
+INFRA Portainer
 ```
 
-**Bemerkungen**
+### Bemerkungen
 
 - Runtime Verwaltung
 - keine Primärquelle
@@ -276,23 +382,23 @@ compose/portainer/docker-compose.yml
 
 ## syncthing
 
-**Zweck**
+### Zweck
 
 Synchronisation der zentralen Security- und Recovery-Struktur.
 
-**Image**
+### Image
 
 ```text
 syncthing/syncthing:latest
 ```
 
-**Container**
+### Container
 
 ```text
 syncthing
 ```
 
-**Ports**
+### Ports
 
 ```text
 8384:8384
@@ -301,20 +407,26 @@ syncthing
 21027:21027/udp
 ```
 
-**Volumes**
+### Volumes
 
 ```text
 /volume1/docker/volumes/syncthing/config:/var/syncthing/config
 /volume1/home/JaitiNissi1968/Security:/var/syncthing/Security
 ```
 
-**Konfiguration**
+### Konfiguration
 
 ```text
 compose/syncthing/docker-compose.yml
 ```
 
-**Architektur**
+### Monitoring
+
+```text
+DATA Syncthing NAS
+```
+
+### Architektur
 
 ```text
 Laptop (Source of Truth)
@@ -324,7 +436,7 @@ Laptop (Source of Truth)
  NAS       Desktop
 ```
 
-**Pfade**
+### Pfade
 
 ```text
 Laptop:
@@ -337,129 +449,145 @@ Desktop:
 D:\Security
 ```
 
-**Bemerkungen**
+### Bemerkungen
 
-- Laptop ist die führende Arbeitskopie.
-- NAS dient als Replik und Recovery-Kopie.
-- Desktop dient als zusätzlicher Recovery-Client.
-- Dateiversionierung über `.stversions` aktiv.
-- GUI-Authentifizierung bewusst deaktiviert.
-- Windows-Clients starten Syncthing automatisch im Hintergrund.
-- Syncthing ersetzt kein Backup.
-- KeePass-Datenbank und Security-Artefakte werden über Syncthing repliziert.
-- Recovery-Konzept basiert auf Laptop, NAS und Desktop.
+- Laptop ist die führende Arbeitskopie
+- NAS dient als Replik und Recovery-Kopie
+- Desktop dient als zusätzlicher Recovery-Client
+- Dateiversionierung über `.stversions` aktiv
+- GUI-Authentifizierung bewusst deaktiviert
+- Phase 10 integrierte Syncthing in das produktive Monitoring
+- Syncthing ersetzt kein Backup
 
 ---
 
 ## emc-mitglieder-backend-dev
 
-**Zweck**
+### Zweck
 
 DEV Backend.
 
-**Image**
+### Image
 
 ```text
-emc-mitglieder-backend:emc-mitglieder-backend:dev
+emc-mitglieder-backend:dev
 ```
 
-**Container**
+### Container
 
 ```text
 emc-mitglieder-backend-dev
 ```
 
-**Ports**
+### Ports
 
 Keine Host-Ports.
 
-**Netzwerke**
+### Netzwerke
 
 ```text
 emc_net
 ```
 
-**Konfiguration**
+### Konfiguration
 
 ```text
 compose/emc-mitglieder-backend-dev/docker-compose.yml
+```
+
+### Monitoring
+
+```text
+APP Backend DEV
 ```
 
 ---
 
 ## emc-mitglieder-backend-prod
 
-**Zweck**
+### Zweck
 
 PROD Backend.
 
-**Image**
+### Image
 
 ```text
-emc-mitglieder-backend:emc-mitglieder-backend:prod
+emc-mitglieder-backend:prod
 ```
 
-**Container**
+### Container
 
 ```text
 emc-mitglieder-backend-prod
 ```
 
-**Ports**
+### Ports
 
 Keine Host-Ports.
 
-**Netzwerke**
+### Netzwerke
 
 ```text
 emc_net
 ```
 
-**Konfiguration**
+### Konfiguration
 
 ```text
 compose/emc-mitglieder-backend-prod/docker-compose.yml
+```
+
+### Monitoring
+
+```text
+APP Backend PROD
 ```
 
 ---
 
 ## emc-mitglieder-frontend-dev
 
-**Zweck**
+### Zweck
 
 DEV Frontend.
 
-**Image**
+### Image
 
 ```text
-emc-mitglieder-frontend:emc-mitglieder-frontend:1.1.1-SNAPSHOT-dev
+emc-mitglieder-frontend:1.1.1-SNAPSHOT-dev
 ```
 
-**Container**
+### Container
 
 ```text
 emc-mitglieder-frontend-dev
 ```
 
-**Ports**
+### Ports
 
 ```text
 8082:80
 ```
 
-**Netzwerke**
+### Netzwerke
 
 ```text
 emc_net
 ```
 
-**Konfiguration**
+### Konfiguration
 
 ```text
 compose/emc-mitglieder-frontend-dev/docker-compose.yml
 ```
 
-**Bemerkungen**
+### Monitoring
+
+```text
+APP Frontend DEV
+```
+
+### Bemerkungen
 
 - image-basiertes Deployment
 - Dockerfile versioniert
@@ -469,48 +597,54 @@ compose/emc-mitglieder-frontend-dev/docker-compose.yml
 
 ## emc-mitglieder-frontend-prod
 
-**Zweck**
+### Zweck
 
 PROD Frontend.
 
-**Image**
+### Image
 
 ```text
 nginx:alpine
 ```
 
-**Container**
+### Container
 
 ```text
 emc-mitglieder-frontend-prod
 ```
 
-**Ports**
+### Ports
 
 ```text
 9082:80
 ```
 
-**Volumes**
+### Volumes
 
 ```text
 /volume1/docker/build/mitglieder-frontend-prod/dist
 /volume1/docker/build/mitglieder-frontend-prod/nginx.conf
 ```
 
-**Netzwerke**
+### Netzwerke
 
 ```text
 emc_net
 ```
 
-**Konfiguration**
+### Konfiguration
 
 ```text
 compose/emc-mitglieder-frontend-prod/docker-compose.yml
 ```
 
-**Bemerkungen**
+### Monitoring
+
+```text
+APP Frontend PROD
+```
+
+### Bemerkungen
 
 - bind-mount Deployment
 - Migration auf image-basiertes Deployment noch ausstehend
@@ -543,7 +677,21 @@ Verbleibende Nutzung nur in dokumentierten Ausnahmefällen.
 
 Nicht Bestandteil der bisherigen Phasen:
 
-- Monitoring Ausbau / echte Healthchecks
-- DB Naming Migration
+- Prüfung der Entfernung des redundanten INFRA MariaDB Portmonitors
+  nach erfolgreicher Beobachtungsphase des DATA MariaDB Login Monitors.
 - Frontend PROD Image Migration
 - Syncthing-Hardening (optional)
+- Erweiterte fachliche Backend-Healthchecks
+- Spring Boot Actuator Einführung für Monitoring-Zwecke
+- Weitere Recovery-orientierte Healthchecks
+
+---
+
+# Änderungslog
+
+| Datum      | Änderung                                                              |
+| ---------- | --------------------------------------------------------------------- |
+| 2026-05-26 | Initiale Inventarisierung                                             |
+| 2026-05-30 | Syncthing ergänzt                                                     |
+| 2026-06-01 | Rollenmodell und Security-Härtung nachgeführt                         |
+| 2026-06-03 | Monitoring-Gruppen, DATA MariaDB Login und DATA Syncthing NAS ergänzt |
