@@ -65,6 +65,10 @@ Das NAS ist Laufzeitumgebung.
 
 Das NAS ist nicht die primäre Dokumentationsquelle.
 
+Portainer ist ebenfalls nicht die primäre Dokumentationsquelle.
+
+Portainer dient ausschließlich als Deployment-, Monitoring- und Runtime-Werkzeug.
+
 ---
 
 # 3. Docker Governance
@@ -107,6 +111,12 @@ Standardnetz:
 emc_net
 ```
 
+Ausnahmen sind dokumentationspflichtig.
+
+Beispiel:
+
+mariadb_default
+
 ---
 
 ## 3.4 Volumes
@@ -114,6 +124,40 @@ emc_net
 Persistente Daten dürfen niemals ausschließlich im Container liegen.
 
 Alle produktiven Daten werden über persistente Volumes oder Bind Mounts gespeichert.
+
+---
+
+## 3.5 Portainer
+
+Portainer dient der operativen Verwaltung und dem Redeployment von Docker-Stacks.
+
+Verbindlicher Grundsatz:
+
+```text
+EMC-INFRA
+=
+Source of Truth
+
+Portainer
+=
+Runtime- und Deployment-Werkzeug
+```
+
+Änderungen an Compose-Dateien erfolgen zuerst in EMC-INFRA.
+
+Anschließend werden die Änderungen in die zugehörigen Portainer-Stacks übernommen.
+
+Direkte Architekturänderungen ausschließlich in Portainer sind nicht zulässig.
+
+Zielzustand:
+
+```text
+EMC-INFRA
+=
+Portainer Stack
+=
+Container Runtime
+```
 
 ---
 
@@ -459,6 +503,10 @@ Vor Änderungen sind zu prüfen:
 
 Jede dauerhafte Infrastrukturänderung wird in EMC-INFRA dokumentiert.
 
+Falls Portainer verwendet wird, sind zugehörige Stackdefinitionen nachzuführen.
+
+EMC-INFRA, Portainer und Runtime dürfen dauerhaft nicht voneinander abweichen.
+
 ---
 
 # 11. Gültigkeit
@@ -485,6 +533,7 @@ Dieses Dokument gilt für die gesamte Infrastruktur der EMC Mitgliederverwaltung
 | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
 | 2026-06-03 | Initiale Governance-Fassung                                                                                                                   |
 | 2026-06-04 | Datenbank Governance ergänzt, verbindliche Naming-Konvention `<fachbereich>_<umgebung>` eingeführt, Access- und Rollenmodellbezug nachgeführt |
+| 2026-06-08 | Portainer Governance ergänzt, Synchronisationsprinzip EMC-INFRA = Portainer = Runtime verbindlich festgelegt                                  |
 
 ```
 

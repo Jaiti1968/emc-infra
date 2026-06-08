@@ -1,6 +1,6 @@
 # Stack Inventory
 
-Status: Phase 11 abgeschlossen
+Status: Phase 12 abgeschlossen
 Ablageziel: `emc-infra/docs/stack-inventory.md`
 
 ---
@@ -383,7 +383,12 @@ INFRA Portainer
 ### Bemerkungen
 
 - Runtime Verwaltung
+- Deployment-Werkzeug
 - keine Primärquelle
+- EMC-INFRA bleibt Source of Truth
+- Portainer-Stacks wurden in Phase 12 auf den dokumentierten Compose-Stand synchronisiert
+- Redeployments erfolgen bevorzugt über Portainer
+- Änderungen an Compose-Dateien erfolgen ausschließlich in EMC-INFRA und werden anschließend nach Portainer übernommen
 - Git bleibt Source of Truth
 
 ---
@@ -466,6 +471,10 @@ D:\Security
 - GUI-Authentifizierung bewusst deaktiviert
 - Phase 10 integrierte Syncthing in das produktive Monitoring
 - Syncthing ersetzt kein Backup
+- durch Portainer als "Limited Stack" erkannt
+- bewusst außerhalb von Portainer erstellt
+- keine operative Einschränkung
+- kein Handlungsbedarf
 
 ---
 
@@ -661,6 +670,9 @@ APP Frontend PROD
 ### Bemerkungen
 
 - bind-mount Deployment
+- Sonderfall der Infrastruktur
+- in Phase 12 erneut bewertet
+- aktuell bewusst beibehalten
 - Migration auf image-basiertes Deployment noch ausstehend
 
 ---
@@ -693,6 +705,40 @@ Status:
 nicht mehr produktiv genutzt
 dienen temporär als Rollback-Sicherung nach Phase 11
 Löschung erst nach gesonderter Freigabe
+
+---
+
+# Portainer Governance
+
+Seit Phase 12 gilt verbindlich:
+
+```text
+EMC-INFRA
+=
+Source of Truth
+
+Portainer
+=
+Deployment
+Monitoring
+Runtime-Verwaltung
+```
+
+Änderungen an Docker-Stacks erfolgen grundsätzlich zuerst in EMC-INFRA.
+
+Anschließend werden die Änderungen in die zugehörigen Portainer-Stacks übernommen.
+
+Direkte Architekturänderungen ausschließlich in Portainer sind nicht zulässig.
+
+Zielzustand:
+
+```text
+EMC-INFRA
+=
+Portainer Stack Definition
+=
+Container Runtime
+```
 
 ---
 
@@ -734,10 +780,11 @@ Nicht Bestandteil der bisherigen Phasen:
 
 # Änderungslog
 
-| Datum      | Änderung                                                                                           |
-| ---------- | -------------------------------------------------------------------------------------------------- |
-| 2026-05-26 | Initiale Inventarisierung                                                                          |
-| 2026-05-30 | Syncthing ergänzt                                                                                  |
-| 2026-06-01 | Rollenmodell und Security-Härtung nachgeführt                                                      |
-| 2026-06-03 | Monitoring-Gruppen, DATA MariaDB Login und DATA Syncthing NAS ergänzt                              |
-| 2026-06-04 | Datenbank-Naming-Migration auf \_prod abgeschlossen, Backup- und Runtime-Konfiguration nachgeführt |
+| Datum      | Änderung                                                                                             |
+| ---------- | ---------------------------------------------------------------------------------------------------- |
+| 2026-05-26 | Initiale Inventarisierung                                                                            |
+| 2026-05-30 | Syncthing ergänzt                                                                                    |
+| 2026-06-01 | Rollenmodell und Security-Härtung nachgeführt                                                        |
+| 2026-06-03 | Monitoring-Gruppen, DATA MariaDB Login und DATA Syncthing NAS ergänzt                                |
+| 2026-06-04 | Datenbank-Naming-Migration auf \_prod abgeschlossen, Backup- und Runtime-Konfiguration nachgeführt   |
+| 2026-06-08 | Phase 12 Portainer-Konsistenzprüfung, Governance-Präzisierung und Stack-Synchronisation durchgeführt |
