@@ -73,7 +73,6 @@ Diese Gruppe besitzt die höchste Recovery-Relevanz.
 ## Infrastruktur
 
 ```text
-INFRA MariaDB
 INFRA mariadb-backup
 INFRA phpMyAdmin
 INFRA Portainer
@@ -136,7 +135,6 @@ compose/mariadb/docker-compose.yml
 
 ```text
 DATA MariaDB Login
-INFRA MariaDB
 ```
 
 ### Bemerkungen
@@ -151,7 +149,9 @@ INFRA MariaDB
 - Primärer DBA: JoergTitz
 - phpMyAdmin verwendet dedizierten GUI-Admin (`emc_phpmyadmin_admin`)
 - Phase 10 führte zusätzlich einen Login-basierten Monitoring-Check ein
-- INFRA MariaDB dient aktuell noch als Parallelmonitor während der Beobachtungsphase
+- Phase 10 führte einen Login-basierten Monitoring-Check ein.
+  Nach erfolgreicher Beobachtungsphase wurde der zusätzliche Portmonitor
+  INFRA MariaDB in Phase 13 entfernt.
 - Phase 11 führte die Standardisierung der Datenbanknamen auf das Schema <fachbereich>\_<umgebung> durch
 - Produktive Datenbanken:
   - emc_mitglieder_prod
@@ -693,7 +693,7 @@ emc_mitglieder_dev
 emc_finanzen_dev
 ```
 
-## Temporäre Legacy-Datenbanken
+## Historische Legacy-Datenbanken
 
 ```text
 emc_mitglieder
@@ -702,9 +702,12 @@ emc_finanzen
 
 Status:
 
-nicht mehr produktiv genutzt
-dienen temporär als Rollback-Sicherung nach Phase 11
-Löschung erst nach gesonderter Freigabe
+Im Rahmen von Phase 11 temporär als Rollback-Sicherung beibehalten.
+
+Nach Erstellung finaler Archivdumps wurden beide Datenbanken
+im Rahmen von Phase 13 entfernt.
+
+Recovery erfolgt über die archivierten SQL-Dumps.
 
 ---
 
@@ -768,8 +771,6 @@ Verbleibende Nutzung nur in dokumentierten Ausnahmefällen.
 
 Nicht Bestandteil der bisherigen Phasen:
 
-- Prüfung der Entfernung des redundanten INFRA MariaDB Portmonitors
-  nach erfolgreicher Beobachtungsphase des DATA MariaDB Login Monitors.
 - Frontend PROD Image Migration
 - Syncthing-Hardening (optional)
 - Erweiterte fachliche Backend-Healthchecks
@@ -780,11 +781,12 @@ Nicht Bestandteil der bisherigen Phasen:
 
 # Änderungslog
 
-| Datum      | Änderung                                                                                             |
-| ---------- | ---------------------------------------------------------------------------------------------------- |
-| 2026-05-26 | Initiale Inventarisierung                                                                            |
-| 2026-05-30 | Syncthing ergänzt                                                                                    |
-| 2026-06-01 | Rollenmodell und Security-Härtung nachgeführt                                                        |
-| 2026-06-03 | Monitoring-Gruppen, DATA MariaDB Login und DATA Syncthing NAS ergänzt                                |
-| 2026-06-04 | Datenbank-Naming-Migration auf \_prod abgeschlossen, Backup- und Runtime-Konfiguration nachgeführt   |
-| 2026-06-08 | Phase 12 Portainer-Konsistenzprüfung, Governance-Präzisierung und Stack-Synchronisation durchgeführt |
+| Datum      | Änderung                                                                                                                       |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| 2026-05-26 | Initiale Inventarisierung                                                                                                      |
+| 2026-05-30 | Syncthing ergänzt                                                                                                              |
+| 2026-06-01 | Rollenmodell und Security-Härtung nachgeführt                                                                                  |
+| 2026-06-03 | Monitoring-Gruppen, DATA MariaDB Login und DATA Syncthing NAS ergänzt                                                          |
+| 2026-06-04 | Datenbank-Naming-Migration auf \_prod abgeschlossen, Backup- und Runtime-Konfiguration nachgeführt                             |
+| 2026-06-08 | Phase 12 Portainer-Konsistenzprüfung, Governance-Präzisierung und Stack-Synchronisation durchgeführt                           |
+| 2026-06-08 | Phase 13 Altlasten-Endbereinigung: Legacy-Datenbanken entfernt, INFRA MariaDB Monitor entfernt, Datenbankinventar aktualisiert |
