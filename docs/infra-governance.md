@@ -396,7 +396,11 @@ Die Uptime-Kuma-Monitore werden nach Betriebsrelevanz gruppiert.
 
 ```text
 APP Backend DEV
+APP EMC Mitglieder Backend DEV Health
+APP EMC Mitglieder Backend DEV Readiness
+
 APP Backend PROD
+
 APP Frontend DEV
 APP Frontend PROD
 ```
@@ -417,6 +421,27 @@ INFRA mariadb-backup
 INFRA phpMyAdmin
 INFRA Portainer
 ```
+
+Für Spring-Boot-Backends gilt zusätzlich:
+
+```text
+fachliche Betriebsbereitschaft
+vor
+reiner Container-Erreichbarkeit
+```
+
+Backend-Monitoring erfolgt bevorzugt über Spring Boot Actuator.
+
+Mindestanforderungen:
+
+```text
+/actuator/health
+/actuator/health/readiness
+```
+
+Healthchecks werden bevorzugt über interne Docker-Netzwerke ausgeführt.
+
+Readiness-Monitoring besitzt höhere Betriebsrelevanz als reine Container- oder Portprüfungen, da zusätzlich die Datenbankerreichbarkeit bewertet wird.
 
 ---
 

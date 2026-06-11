@@ -48,6 +48,12 @@ Zweck:
 - Verfügbarkeit der Anwendungen
 - Erreichbarkeit der Benutzeroberflächen
 - Erreichbarkeit der Backend-Services
+- Actuator-basierte Health-Überwachung der Spring-Boot-Backends
+
+Backend-Healthchecks:
+
+- DEV: `http://emc-mitglieder-backend-dev:8080/actuator/health`
+- PROD: wird mit dem PROD-Deployment von BL-007 ergänzt
 
 ---
 
@@ -512,11 +518,128 @@ emc_net
 compose/emc-mitglieder-backend-dev/docker-compose.yml
 ```
 
+### Runtime-Konfiguration
+
+```text
+SPRING_PROFILES_ACTIVE=dev
+```
+
 ### Monitoring
 
 ```text
 APP Backend DEV
+APP EMC Mitglieder Backend DEV Health
+APP EMC Mitglieder Backend DEV Readiness
 ```
+
+#### Health Monitoring
+
+Health:
+
+```text
+http://emc-mitglieder-backend-dev:8080/actuator/health
+```
+
+Erwartung:
+
+```json
+{
+  "status": "UP"
+}
+```
+
+Verhalten:
+
+- HTTP 200 = betriebsbereit
+- HTTP 503 = nicht betriebsbereit
+
+#### Readiness Monitoring
+
+Readiness:
+
+```text
+http://emc-mitglieder-backend-dev:8080/actuator/health/readiness
+```
+
+Erwartung:
+
+```json
+{
+  "status": "UP"
+}
+```
+
+Verhalten:
+
+- berücksichtigt die MariaDB-Verbindung
+- HTTP 200 = betriebsbereit
+- HTTP 503 = nicht betriebsbereit
+
+#### Bemerkungen
+
+- Spring Boot Actuator wurde mit BL-007 eingeführt.
+- Healthchecks werden intern über das Docker-Netzwerk `emc_net` überwacht.
+- Readiness dient als Betriebsnachweis für die vollständige Backend-Bereitschaft einschließlich Datenbankverbindung.
+- Environment-Erkennung erfolgt über `SPRING_PROFILES_ACTIVE=dev`.
+- ### Monitoring
+
+```text
+APP Backend DEV
+APP EMC Mitglieder Backend DEV Health
+APP EMC Mitglieder Backend DEV Readiness
+```
+
+#### Health Monitoring
+
+Health:
+
+```text
+http://emc-mitglieder-backend-dev:8080/actuator/health
+```
+
+Erwartung:
+
+```json
+{
+  "status": "UP"
+}
+```
+
+Verhalten:
+
+- HTTP 200 = betriebsbereit
+- HTTP 503 = nicht betriebsbereit
+
+#### Readiness Monitoring
+
+Readiness:
+
+```text
+http://emc-mitglieder-backend-dev:8080/actuator/health/readiness
+```
+
+Erwartung:
+
+```json
+{
+  "status": "UP"
+}
+```
+
+Verhalten:
+
+- berücksichtigt die MariaDB-Verbindung
+- HTTP 200 = betriebsbereit
+- HTTP 503 = nicht betriebsbereit
+
+#### Bemerkungen
+
+- Spring Boot Actuator wurde mit BL-007 eingeführt.
+- Healthchecks werden intern über das Docker-Netzwerk `emc_net` überwacht.
+- Readiness dient als Betriebsnachweis für die vollständige Backend-Bereitschaft einschließlich Datenbankverbindung.
+- Environment-Erkennung erfolgt über `SPRING_PROFILES_ACTIVE=dev`.
+- Die Endpunkte `/actuator/health` und `/actuator/health/readiness` sind bewusst ohne Authentifizierung erreichbar.
+- Es werden ausschließlich Statusinformationen veröffentlicht.
 
 ---
 
@@ -773,20 +896,21 @@ Nicht Bestandteil der bisherigen Phasen:
 
 - Frontend PROD Image Migration
 - Syncthing-Hardening (optional)
-- Erweiterte fachliche Backend-Healthchecks
-- Spring Boot Actuator Einführung für Monitoring-Zwecke
+- Bewertung fachlicher Healthchecks auf Anwendungsebene (derzeit nicht erforderlich)
+- PROD-Einbindung des Actuator-basierten Backend-Health-Monitorings
 - Weitere Recovery-orientierte Healthchecks
 
 ---
 
 # Änderungslog
 
-| Datum      | Änderung                                                                                                                       |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| 2026-05-26 | Initiale Inventarisierung                                                                                                      |
-| 2026-05-30 | Syncthing ergänzt                                                                                                              |
-| 2026-06-01 | Rollenmodell und Security-Härtung nachgeführt                                                                                  |
-| 2026-06-03 | Monitoring-Gruppen, DATA MariaDB Login und DATA Syncthing NAS ergänzt                                                          |
-| 2026-06-04 | Datenbank-Naming-Migration auf \_prod abgeschlossen, Backup- und Runtime-Konfiguration nachgeführt                             |
-| 2026-06-08 | Phase 12 Portainer-Konsistenzprüfung, Governance-Präzisierung und Stack-Synchronisation durchgeführt                           |
-| 2026-06-08 | Phase 13 Altlasten-Endbereinigung: Legacy-Datenbanken entfernt, INFRA MariaDB Monitor entfernt, Datenbankinventar aktualisiert |
+| Datum      | Änderung                                                                                                                                                                            |
+| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-05-26 | Initiale Inventarisierung                                                                                                                                                           |
+| 2026-05-30 | Syncthing ergänzt                                                                                                                                                                   |
+| 2026-06-01 | Rollenmodell und Security-Härtung nachgeführt                                                                                                                                       |
+| 2026-06-03 | Monitoring-Gruppen, DATA MariaDB Login und DATA Syncthing NAS ergänzt                                                                                                               |
+| 2026-06-04 | Datenbank-Naming-Migration auf \_prod abgeschlossen, Backup- und Runtime-Konfiguration nachgeführt                                                                                  |
+| 2026-06-08 | Phase 12 Portainer-Konsistenzprüfung, Governance-Präzisierung und Stack-Synchronisation durchgeführt                                                                                |
+| 2026-06-08 | Phase 13 Altlasten-Endbereinigung: Legacy-Datenbanken entfernt, INFRA MariaDB Monitor entfernt, Datenbankinventar aktualisiert                                                      |
+| 2026-06-11 | BL-007: Spring Boot Actuator Healthcheck für Backend DEV ergänzt, `SPRING_PROFILES_ACTIVE=dev` dokumentiert und Uptime-Kuma-Monitor `EMC Mitglieder Backend DEV Health` aufgenommen |
