@@ -581,63 +581,6 @@ Verhalten:
 - Healthchecks werden intern über das Docker-Netzwerk `emc_net` überwacht.
 - Readiness dient als Betriebsnachweis für die vollständige Backend-Bereitschaft einschließlich Datenbankverbindung.
 - Environment-Erkennung erfolgt über `SPRING_PROFILES_ACTIVE=dev`.
-- ### Monitoring
-
-```text
-APP Backend DEV
-APP EMC Mitglieder Backend DEV Health
-APP EMC Mitglieder Backend DEV Readiness
-```
-
-#### Health Monitoring
-
-Health:
-
-```text
-http://emc-mitglieder-backend-dev:8080/actuator/health
-```
-
-Erwartung:
-
-```json
-{
-  "status": "UP"
-}
-```
-
-Verhalten:
-
-- HTTP 200 = betriebsbereit
-- HTTP 503 = nicht betriebsbereit
-
-#### Readiness Monitoring
-
-Readiness:
-
-```text
-http://emc-mitglieder-backend-dev:8080/actuator/health/readiness
-```
-
-Erwartung:
-
-```json
-{
-  "status": "UP"
-}
-```
-
-Verhalten:
-
-- berücksichtigt die MariaDB-Verbindung
-- HTTP 200 = betriebsbereit
-- HTTP 503 = nicht betriebsbereit
-
-#### Bemerkungen
-
-- Spring Boot Actuator wurde mit BL-007 eingeführt.
-- Healthchecks werden intern über das Docker-Netzwerk `emc_net` überwacht.
-- Readiness dient als Betriebsnachweis für die vollständige Backend-Bereitschaft einschließlich Datenbankverbindung.
-- Environment-Erkennung erfolgt über `SPRING_PROFILES_ACTIVE=dev`.
 - Die Endpunkte `/actuator/health` und `/actuator/health/readiness` sind bewusst ohne Authentifizierung erreichbar.
 - Es werden ausschließlich Statusinformationen veröffentlicht.
 
@@ -677,17 +620,71 @@ emc_net
 compose/emc-mitglieder-backend-prod/docker-compose.yml
 ```
 
+### Runtime-Konfiguration
+
+```text
+SPRING_PROFILES_ACTIVE=prod
+```
+
 ### Monitoring
 
 ```text
 APP Backend PROD
+APP EMC Mitglieder Backend PROD Health
+APP EMC Mitglieder Backend PROD Readiness
 ```
 
-### Bemerkungen
+#### Health Monitoring
 
-- DB_URL verweist seit Phase 11 auf emc_mitglieder_prod
-- Runtime-User bleibt emc_mitglieder_prod_rw
-- Runtime-Test gegen Produktivdatenbank erfolgreich validiert
+Health:
+
+```text
+http://emc-mitglieder-backend-prod:8080/actuator/health
+```
+
+Erwartung:
+
+```json
+{
+  "status": "UP"
+}
+```
+
+Verhalten:
+
+- HTTP 200 = betriebsbereit
+- HTTP 503 = nicht betriebsbereit
+
+#### Readiness Monitoring
+
+Readiness:
+
+```text
+http://emc-mitglieder-backend-prod:8080/actuator/health/readiness
+```
+
+Erwartung:
+
+```json
+{
+  "status": "UP"
+}
+```
+
+Verhalten:
+
+- berücksichtigt die MariaDB-Verbindung
+- HTTP 200 = betriebsbereit
+- HTTP 503 = nicht betriebsbereit
+
+#### Bemerkungen
+
+- Spring Boot Actuator wurde mit BL-007 eingeführt.
+- Healthchecks werden intern über das Docker-Netzwerk `emc_net` überwacht.
+- Readiness dient als Betriebsnachweis für die vollständige Backend-Bereitschaft einschließlich Datenbankverbindung.
+- Environment-Erkennung erfolgt über `SPRING_PROFILES_ACTIVE=prod`.
+- Die Endpunkte `/actuator/health` und `/actuator/health/readiness` sind bewusst ohne Authentifizierung erreichbar.
+- Es werden ausschließlich Statusinformationen veröffentlicht.
 
 ---
 
@@ -897,7 +894,6 @@ Nicht Bestandteil der bisherigen Phasen:
 - Frontend PROD Image Migration
 - Syncthing-Hardening (optional)
 - Bewertung fachlicher Healthchecks auf Anwendungsebene (derzeit nicht erforderlich)
-- PROD-Einbindung des Actuator-basierten Backend-Health-Monitorings
 - Weitere Recovery-orientierte Healthchecks
 
 ---
@@ -914,3 +910,4 @@ Nicht Bestandteil der bisherigen Phasen:
 | 2026-06-08 | Phase 12 Portainer-Konsistenzprüfung, Governance-Präzisierung und Stack-Synchronisation durchgeführt                                                                                |
 | 2026-06-08 | Phase 13 Altlasten-Endbereinigung: Legacy-Datenbanken entfernt, INFRA MariaDB Monitor entfernt, Datenbankinventar aktualisiert                                                      |
 | 2026-06-11 | BL-007: Spring Boot Actuator Healthcheck für Backend DEV ergänzt, `SPRING_PROFILES_ACTIVE=dev` dokumentiert und Uptime-Kuma-Monitor `EMC Mitglieder Backend DEV Health` aufgenommen |
+| 2026-06-12 | BL-007: Actuator-basierte Backend-Healthchecks für DEV und PROD dokumentiert, Runtime-Profile `dev` und `prod` nachgeführt                                                          |

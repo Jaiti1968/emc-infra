@@ -400,6 +400,8 @@ APP EMC Mitglieder Backend DEV Health
 APP EMC Mitglieder Backend DEV Readiness
 
 APP Backend PROD
+APP EMC Mitglieder Backend PROD Health
+APP EMC Mitglieder Backend PROD Readiness
 
 APP Frontend DEV
 APP Frontend PROD
@@ -416,7 +418,6 @@ DATA Syncthing NAS
 ### Infrastruktur
 
 ```text
-INFRA MariaDB
 INFRA mariadb-backup
 INFRA phpMyAdmin
 INFRA Portainer
@@ -554,11 +555,12 @@ Dieses Dokument gilt für die gesamte Infrastruktur der EMC Mitgliederverwaltung
 
 # Änderungslog
 
-| Datum      | Änderung                                                                                                                                      |
-| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| 2026-06-03 | Initiale Governance-Fassung                                                                                                                   |
-| 2026-06-04 | Datenbank Governance ergänzt, verbindliche Naming-Konvention `<fachbereich>_<umgebung>` eingeführt, Access- und Rollenmodellbezug nachgeführt |
-| 2026-06-08 | Portainer Governance ergänzt, Synchronisationsprinzip EMC-INFRA = Portainer = Runtime verbindlich festgelegt                                  |
+| Datum      | Änderung                                                                                                                                           |
+| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-06-03 | Initiale Governance-Fassung                                                                                                                        |
+| 2026-06-04 | Datenbank Governance ergänzt, verbindliche Naming-Konvention `<fachbereich>_<umgebung>` eingeführt, Access- und Rollenmodellbezug nachgeführt      |
+| 2026-06-08 | Portainer Governance ergänzt, Synchronisationsprinzip EMC-INFRA = Portainer = Runtime verbindlich festgelegt                                       |
+| 2026-06-12 | BL-007 Backend Healthchecks: Spring Boot Actuator als Standard für Backend-Monitoring eingeführt, DEV- und PROD-Health-/Readiness-Monitore ergänzt |
 
 ```
 
