@@ -223,6 +223,15 @@ Restore-Tests sind Bestandteil der Betriebsdokumentation.
 
 Die zusätzliche USB-Sicherung ist Bestandteil der Recovery-Strategie.
 
+Die USB-Sicherung wird bewusst als Offline-Backup betrieben.
+
+Grundsätze:
+
+- USB-Datenträger sind außerhalb des Backup-Prozesses nicht dauerhaft mit dem NAS verbunden.
+- Die externe Sicherung ergänzt die täglichen internen Datenbank-Backups.
+- Die externe Sicherung wird im Rahmen eines dokumentierten Wochenprozesses erstellt und geprüft.
+- Die USB-Sicherung ist nicht Bestandteil des permanent verfügbaren Betriebsbestandes.
+
 ---
 
 # 6. Security Governance
@@ -411,9 +420,17 @@ APP Frontend PROD
 
 ```text
 DATA DB Backup Healthcheck
+DATA External DB Backup Healthcheck
 DATA MariaDB Login
 DATA Syncthing NAS
 ```
+
+Backup-Monitoring wird getrennt durchgeführt:
+
+- DATA DB Backup Healthcheck überwacht die täglichen internen MariaDB-Backups.
+- DATA External DB Backup Healthcheck überwacht das wöchentliche Offline-Backup auf externem USB-Datenträger.
+
+Die Trennung verhindert Fehlalarme, da externe USB-Datenträger im Regelbetrieb nicht dauerhaft mit dem NAS verbunden sind.
 
 ### Infrastruktur
 
@@ -452,6 +469,7 @@ Besondere Bedeutung besitzen:
 
 ```text
 DATA DB Backup Healthcheck
+DATA External DB Backup Healthcheck
 DATA MariaDB Login
 DATA Syncthing NAS
 ```
@@ -561,6 +579,7 @@ Dieses Dokument gilt für die gesamte Infrastruktur der EMC Mitgliederverwaltung
 | 2026-06-04 | Datenbank Governance ergänzt, verbindliche Naming-Konvention `<fachbereich>_<umgebung>` eingeführt, Access- und Rollenmodellbezug nachgeführt      |
 | 2026-06-08 | Portainer Governance ergänzt, Synchronisationsprinzip EMC-INFRA = Portainer = Runtime verbindlich festgelegt                                       |
 | 2026-06-12 | BL-007 Backend Healthchecks: Spring Boot Actuator als Standard für Backend-Monitoring eingeführt, DEV- und PROD-Health-/Readiness-Monitore ergänzt |
+| 2026-06-14 | Trennung von internem Backup-Monitoring und externem Offline-Backup-Monitoring dokumentiert                                                        |
 
 ```
 

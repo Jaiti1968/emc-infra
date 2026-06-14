@@ -61,6 +61,7 @@ Backend-Healthchecks:
 
 ```text
 DATA DB Backup Healthcheck
+DATA External DB Backup Healthcheck
 DATA MariaDB Login
 DATA Syncthing NAS
 ```
@@ -71,6 +72,17 @@ Zweck:
 - Wiederherstellbarkeit
 - Backupfähigkeit
 - Replikationsfähigkeit
+
+Backup-Monitoring ist in zwei Bereiche getrennt:
+
+- DATA DB Backup Healthcheck
+  - tägliche Überwachung der internen MariaDB-Backups
+  - automatischer Push durch `backup-healthcheck.sh`
+
+- DATA External DB Backup Healthcheck
+  - Überwachung des wöchentlichen Offline-Backups auf USB-Datenträger
+  - automatischer Push durch `external-backup-healthcheck.sh`
+  - Aktualisierung ausschließlich im Rahmen des manuellen Wochenprozesses
 
 Diese Gruppe besitzt die höchste Recovery-Relevanz.
 
@@ -343,6 +355,8 @@ Phase 10 führte eine gruppierte Monitoring-Struktur ein:
 
 sowie die Monitore:
 
+- DATA DB Backup Healthcheck
+- DATA External DB Backup Healthcheck
 - DATA MariaDB Login
 - DATA Syncthing NAS
 
@@ -911,3 +925,4 @@ Nicht Bestandteil der bisherigen Phasen:
 | 2026-06-08 | Phase 13 Altlasten-Endbereinigung: Legacy-Datenbanken entfernt, INFRA MariaDB Monitor entfernt, Datenbankinventar aktualisiert                                                      |
 | 2026-06-11 | BL-007: Spring Boot Actuator Healthcheck für Backend DEV ergänzt, `SPRING_PROFILES_ACTIVE=dev` dokumentiert und Uptime-Kuma-Monitor `EMC Mitglieder Backend DEV Health` aufgenommen |
 | 2026-06-12 | BL-007: Actuator-basierte Backend-Healthchecks für DEV und PROD dokumentiert, Runtime-Profile `dev` und `prod` nachgeführt                                                          |
+| 2026-06-14 | Trennung des Backup-Monitorings in täglichen internen Backup-Healthcheck und wöchentlichen Offline-Backup-Healthcheck dokumentiert                                                  |

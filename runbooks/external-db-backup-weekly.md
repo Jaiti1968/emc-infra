@@ -11,9 +11,9 @@ Dieses Runbook beschreibt den wöchentlichen manuellen External-Backup-Lauf für
 
 Gesichert werden die aktuellen Backup-Artefakte für:
 
-- `emc_mitglieder`
+- `emc_mitglieder_prod`
 - `emc_mitglieder_dev`
-- `emc_finanzen`
+- `emc_finanzen_prod`
 - `emc_finanzen_dev`
 
 Die Sicherung erfolgt auf das externe USB-Medium unter:
@@ -31,7 +31,13 @@ Standard:
 - wöchentlich manuell
 - empfohlen: Sonntag
 
-Zusätzlich überwacht Uptime Kuma, ob das externe Backup älter als 8 Tage ist.
+Zusätzlich überwacht der Uptime-Kuma-Monitor
+
+`DATA External DB Backup Healthcheck`
+
+ob das externe Backup älter als das konfigurierte Heartbeat-Intervall ist.
+
+Der Monitor wird ausschließlich im Rahmen dieses Wochenprozesses aktualisiert.
 
 ---
 
@@ -74,14 +80,11 @@ Für alle vier Datenbanken erscheint:
 ### 3. Backup Healthcheck ausführen
 
 ```bash
-/volume1/docker/monitoring/scripts/backup-healthcheck.sh
+/volume1/docker/monitoring/scripts/external-backup-healthcheck.sh
 ```
 
 Erwartung:
 
-- lokale DB-Backups sind vorhanden
-- lokale DB-Backups sind gzip-lesbar
-- lokale DB-Backups sind frisch
 - externe DB-Backups sind vorhanden
 - externe DB-Backups sind gzip-lesbar
 - externe DB-Backups sind frisch
@@ -114,8 +117,8 @@ Erst danach die USB-Festplatte abziehen.
 Der Lauf gilt als erfolgreich, wenn:
 
 - `external-db-backup.sh` für alle vier DBs `[OK]` meldet
-- `backup-healthcheck.sh` keine `[FAIL]` Meldung erzeugt
-- Uptime Kuma grün bleibt
+- `external-backup-healthcheck.sh` keine `[FAIL]` Meldung erzeugt
+- Monitor `DATA External DB Backup Healthcheck` auf `UP` steht
 - USB-Medium sauber ausgeworfen wurde
 
 ---
@@ -140,10 +143,46 @@ ls -lah /mnt/@usb/sdc1/emc-backup/mariadb
 4. Healthcheck erneut ausführen:
 
 ```bash
-/volume1/docker/monitoring/scripts/backup-healthcheck.sh
+/volume1/docker/monitoring/scripts/external-backup-healthcheck.sh
 ```
 
 Keine produktiven Datenbanken überschreiben.
+
+---
+
+## Monitoring
+
+Das Backup-Monitoring ist getrennt aufgebaut:
+
+### Tägliches Monitoring
+
+Monitor:
+
+`DATA DB Backup Healthcheck`
+
+Prüft:
+
+- interne MariaDB-Backups
+- Backup-Aktualität
+- Backup-Integrität
+
+Ausführung automatisch nach dem nächtlichen Backup-Lauf.
+
+### Wöchentliches Offline-Backup
+
+Monitor:
+
+`DATA External DB Backup Healthcheck`
+
+Prüft:
+
+- externe USB-Backups
+- Backup-Aktualität
+- Backup-Integrität
+
+Ausführung ausschließlich im Rahmen dieses Runbooks.
+
+Die Trennung verhindert Fehlalarme, da die USB-Sicherungsmedien im Regelbetrieb nicht dauerhaft mit dem NAS verbunden sind.
 
 ---
 
