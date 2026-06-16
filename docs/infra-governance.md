@@ -165,14 +165,43 @@ Container Runtime
 
 ## 4.1 Frontend
 
-Frontend-Deployments erfolgen über:
+Frontend-Deployments erfolgen image-basiert.
 
-```text
-GitHub Actions
-Build
-Artefaktbereitstellung
-Deployment auf NAS
-```
+Standardprozess:
+
+Git Repository
+→ npm run build
+→ Docker Image Build (linux/arm64)
+→ docker save
+→ Artefaktübertragung auf NAS
+→ docker load
+→ Portainer Redeploy
+
+Versionsstandard:
+
+DEV verwendet Snapshot-Images:
+
+X.Y.Z-SNAPSHOT
+
+PROD verwendet Release-Images:
+
+X.Y.Z
+
+Beispiel:
+
+DEV:
+1.1.2-SNAPSHOT
+
+PROD:
+1.1.1
+
+Nach einem Release wird die Entwicklungsversion auf die nächste Snapshot-Version angehoben.
+
+Die im Frontend angezeigte Versionsnummer wird aus package.json zum Build-Zeitpunkt erzeugt.
+
+Vor Release-Builds ist die Version daher explizit zu prüfen.
+
+Frontend-Deployments auf dem NAS verwenden ARM64-kompatible Docker Images.
 
 ---
 
@@ -580,6 +609,7 @@ Dieses Dokument gilt für die gesamte Infrastruktur der EMC Mitgliederverwaltung
 | 2026-06-08 | Portainer Governance ergänzt, Synchronisationsprinzip EMC-INFRA = Portainer = Runtime verbindlich festgelegt                                       |
 | 2026-06-12 | BL-007 Backend Healthchecks: Spring Boot Actuator als Standard für Backend-Monitoring eingeführt, DEV- und PROD-Health-/Readiness-Monitore ergänzt |
 | 2026-06-14 | Trennung von internem Backup-Monitoring und externem Offline-Backup-Monitoring dokumentiert                                                        |
+| 2026-06-15 | BL-008 Frontend Deployment standardisiert: DEV und PROD verwenden image-basiertes Deployment, Snapshot-/Release-Strategie verbindlich festgelegt   |
 
 ```
 

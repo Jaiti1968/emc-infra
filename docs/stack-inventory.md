@@ -711,7 +711,7 @@ DEV Frontend.
 ### Image
 
 ```text
-emc-mitglieder-frontend:1.1.1-SNAPSHOT-dev
+emc-mitglieder-frontend:X.Y.Z-SNAPSHOT
 ```
 
 ### Container
@@ -747,8 +747,11 @@ APP Frontend DEV
 ### Bemerkungen
 
 - image-basiertes Deployment
+- Snapshot-Versionen werden für DEV verwendet
 - Dockerfile versioniert
 - nginx-Konfiguration versioniert
+- ARM64-Images für NAS-Betrieb
+- Deployment über docker load und Portainer Redeploy
 
 ---
 
@@ -761,7 +764,7 @@ PROD Frontend.
 ### Image
 
 ```text
-nginx:alpine
+emc-mitglieder-frontend:X.Y.Z
 ```
 
 ### Container
@@ -774,13 +777,6 @@ emc-mitglieder-frontend-prod
 
 ```text
 9082:80
-```
-
-### Volumes
-
-```text
-/volume1/docker/build/mitglieder-frontend-prod/dist
-/volume1/docker/build/mitglieder-frontend-prod/nginx.conf
 ```
 
 ### Netzwerke
@@ -803,11 +799,13 @@ APP Frontend PROD
 
 ### Bemerkungen
 
-- bind-mount Deployment
-- Sonderfall der Infrastruktur
-- in Phase 12 erneut bewertet
-- aktuell bewusst beibehalten
-- Migration auf image-basiertes Deployment noch ausstehend
+- image-basiertes Deployment
+- Release-Versionen werden für PROD verwendet
+- Dockerfile versioniert
+- nginx-Konfiguration versioniert
+- ARM64-Images für NAS-Betrieb
+- Deployment über docker load und Portainer Redeploy
+- BL-008 migrierte PROD vom bind-mount Deployment auf den standardisierten Image-Betrieb
 
 ---
 
@@ -905,7 +903,6 @@ Verbleibende Nutzung nur in dokumentierten Ausnahmefällen.
 
 Nicht Bestandteil der bisherigen Phasen:
 
-- Frontend PROD Image Migration
 - Syncthing-Hardening (optional)
 - Bewertung fachlicher Healthchecks auf Anwendungsebene (derzeit nicht erforderlich)
 - Weitere Recovery-orientierte Healthchecks
@@ -926,3 +923,4 @@ Nicht Bestandteil der bisherigen Phasen:
 | 2026-06-11 | BL-007: Spring Boot Actuator Healthcheck für Backend DEV ergänzt, `SPRING_PROFILES_ACTIVE=dev` dokumentiert und Uptime-Kuma-Monitor `EMC Mitglieder Backend DEV Health` aufgenommen |
 | 2026-06-12 | BL-007: Actuator-basierte Backend-Healthchecks für DEV und PROD dokumentiert, Runtime-Profile `dev` und `prod` nachgeführt                                                          |
 | 2026-06-14 | Trennung des Backup-Monitorings in täglichen internen Backup-Healthcheck und wöchentlichen Offline-Backup-Healthcheck dokumentiert                                                  |
+| 2026-06-15 | BL-008: Frontend PROD von bind-mount Deployment auf image-basierten Betrieb migriert, DEV/PROD Snapshot-/Release-Strategie dokumentiert                                             |

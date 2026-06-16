@@ -91,6 +91,12 @@ Repositories klonen:
 - emc-mitglieder-frontend
 - emc-dokumentation
 
+Zusätzlich sind die archivierten Docker-Images der Eigenentwicklungen bereitzustellen.
+
+Ablage:
+
+/volume1/docker/build
+
 ---
 
 ### 5. Betriebsstruktur herstellen
@@ -148,6 +154,23 @@ Frontend DEV
 Frontend PROD
 optional phpMyAdmin
 ```
+
+Hinweis:
+
+Vor dem Start der produktiven Anwendungs-Stacks müssen die zugehörigen Docker Images auf dem NAS verfügbar sein.
+
+Dies betrifft insbesondere:
+
+- emc-mitglieder-backend-dev
+- emc-mitglieder-backend-prod
+- emc-mitglieder-frontend-dev
+- emc-mitglieder-frontend-prod
+
+Falls die Images nicht mehr vorhanden sind, müssen sie aus den archivierten Deployment-Artefakten wiederhergestellt werden.
+
+Beispiel:
+
+docker load -i <image>.tar
 
 ---
 
