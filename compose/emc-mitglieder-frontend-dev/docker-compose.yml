@@ -1,6 +1,6 @@
 services:
   frontend:
-    image: emc-mitglieder-frontend:1.1.1-SNAPSHOT
+    image: emc-mitglieder-frontend:1.2.0-SNAPSHOT
     container_name: emc-mitglieder-frontend-dev
     restart: unless-stopped
     ports:
